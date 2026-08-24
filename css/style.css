@@ -229,22 +229,20 @@ p { color: var(--text-muted); }
   gap: 24px;
 }
 
-.nav-logo { display: flex; align-items: center; gap: 16px; justify-self: start; }
-.nav-logo svg { width: 56px; height: 56px; }
+/* Simple single-line text wordmark (no icon) — mirrors the plain-text
+   nav logo used on bradleenicholls.com, which sidesteps the mobile
+   icon-sizing issues a small SVG mark kept running into. */
+.nav-logo { display: flex; align-items: center; justify-self: start; }
 .nav-logo-text {
   font-family: var(--font-display);
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   font-weight: 500;
   letter-spacing: 0.01em;
   line-height: 1;
+  white-space: nowrap;
 }
 .nav-logo-text span {
-  display: block;
-  font-family: var(--font-mono);
-  font-size: 0.76rem;
-  letter-spacing: 0.32em;
-  color: var(--text-faint);
-  margin-top: 3px;
+  color: var(--gold);
 }
 
 .nav-links {
@@ -728,10 +726,6 @@ footer {
   .footer-top { gap: 40px; }
   .footer-cols { gap: 40px; }
 
-  /* Fixed 56px on every screen size reads as undersized next to the
-     "Veld" wordmark on a narrow phone — give it more presence on mobile.
-     Scoped to the top nav specifically, not the footer's smaller mark. */
-  .nav .nav-logo svg { width: 68px; height: 68px; }
   .cred-strip { grid-template-columns: repeat(3, 1fr); }
   .cred-item { border-bottom: 1px solid var(--border); }
 
