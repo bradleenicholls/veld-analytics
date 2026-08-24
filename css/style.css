@@ -718,10 +718,20 @@ footer {
   .stat { border-bottom: 1px solid var(--border); }
   .form-grid { grid-template-columns: 1fr; }
   section { padding: 90px 0; }
+  /* section.tight (90px) sitting directly above footer (80px top) stacks
+     into 170px of dead vertical space — barely visible on a wide desktop
+     screen, but a huge chunk of a phone viewport. Shrink both. */
+  section.tight { padding: 56px 0; }
+  footer { padding: 56px 0 32px; }
   .hero, .hero-3d { padding-top: 120px; }
   .page-hero { padding: 140px 0 70px; }
   .footer-top { gap: 40px; }
   .footer-cols { gap: 40px; }
+
+  /* Fixed 56px on every screen size reads as undersized next to the
+     "Veld" wordmark on a narrow phone — give it more presence on mobile.
+     Scoped to the top nav specifically, not the footer's smaller mark. */
+  .nav .nav-logo svg { width: 68px; height: 68px; }
   .cred-strip { grid-template-columns: repeat(3, 1fr); }
   .cred-item { border-bottom: 1px solid var(--border); }
 
