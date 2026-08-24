@@ -1,0 +1,13 @@
+<svg width="340" height="64" viewBox="0 0 340 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Veld Analytics">
+  <g transform="translate(0,0)">
+    <rect x="2" y="2" width="60" height="60" rx="15" stroke="#C8A24A" stroke-opacity="0.35" stroke-width="1.2"/>
+    <path d="M15,42 C20.5,42 20.5,34 25.5,34 C30,34 30.5,38.3 35,37.2 C39.5,36.1 39.5,26 45,22"
+          stroke="#C8A24A" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <circle cx="15" cy="42" r="2.8" fill="#0A0B09" stroke="#C8A24A" stroke-width="2.2"/>
+    <circle cx="25.5" cy="34" r="2.8" fill="#0A0B09" stroke="#C8A24A" stroke-width="2.2"/>
+    <circle cx="35" cy="37.2" r="2.8" fill="#0A0B09" stroke="#C8A24A" stroke-width="2.2"/>
+    <circle cx="45" cy="22" r="3.4" fill="#C8A24A"/>
+  </g>
+  <text x="78" y="30" font-family="Fraunces, Georgia, serif" font-size="22" font-weight="500" letter-spacing="0.5" fill="#F3F1E9">Veld</text>
+  <text x="78" y="50" font-family="Inter, Arial, sans-serif" font-size="11" font-weight="500" letter-spacing="3.5" fill="#9B9A8C">ANALYTICS</text>
+</svg>
