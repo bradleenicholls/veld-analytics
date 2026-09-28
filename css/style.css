@@ -375,26 +375,38 @@ hr.rule {
 .hero-meta div { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-faint); letter-spacing: 0.04em; }
 .hero-meta strong { display: block; color: var(--text); font-family: var(--font-body); font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
 
-/* ---------- Hero v2 (homepage-only redesign) ----------
-   Split-edge wordmark either side of a centred spiral-galaxy graphic
-   (see js/galaxy-v.js), riffing on a reference hero the client liked.
-   Scoped entirely to new classes so the rest of the site (which still
-   uses .hero / .hero-3d / .page-hero) is untouched. */
-.hero-v2 {
-  min-height: 100vh;
-  min-height: 100svh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* ---------- Scroll Hero (homepage-only redesign) ----------
+   A single pinned viewport that narrates the product story as the page
+   scrolls: a calm typographic opening, then a field of scattered data
+   points fades in, then those points migrate into an ascending line chart
+   while stat counters resolve — dramatizing "scattered platform data
+   becoming a dashboard your team uses". All motion is scroll-progress
+   driven from js/scroll-hero.js (transform/opacity only); pinning itself
+   uses `position: sticky`, no JS required for that part.
+
+   Layout note: the stage is centred with position:absolute + translate,
+   NOT flex/grid centering. An earlier version centred a grid with
+   flex `justify-content`, which left the grid with no real width to
+   distribute its columns from and it silently collapsed to nothing. Giving
+   the stage an explicit width up front avoids that failure mode entirely.
+
+   Progressive enhancement: nothing here is hidden by default CSS. If
+   js/scroll-hero.js fails to load, the hero still renders as a normal,
+   fully visible, non-animated two-column section. */
+.scrollhero {
+  height: 320vh;
   position: relative;
-  overflow: hidden;
-  padding: 140px 0 80px;
 }
 
-/* Faint 1px coordinate grid across the whole hero — a quiet nod to
-   "technical/data-driven" that reads as instrumentation, not decoration.
-   Masked so it fades out toward the edges instead of tiling flatly. */
-.hero-v2-grid {
+.scrollhero-pin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+}
+
+.scrollhero-grid {
   position: absolute;
   inset: 0;
   z-index: 0;
@@ -404,78 +416,167 @@ hr.rule {
     linear-gradient(var(--border) 1px, transparent 1px),
     linear-gradient(90deg, var(--border) 1px, transparent 1px);
   background-size: 64px 64px;
-  mask-image: radial-gradient(ellipse 70% 70% at 68% 50%, black 0%, transparent 78%);
-  -webkit-mask-image: radial-gradient(ellipse 70% 70% at 68% 50%, black 0%, transparent 78%);
+  mask-image: radial-gradient(ellipse 75% 75% at 50% 50%, black 0%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 75% 75% at 50% 50%, black 0%, transparent 80%);
 }
 
-/* Asymmetric two-column layout: copy fixed to the left, the galaxy graphic
-   confined to a defined panel on the right instead of washed full-bleed
-   across the viewport. Anti-center-bias — the composition has a clear
-   weight to one side rather than everything stacked dead-centre. */
-.hero-v2-inner {
-  position: relative;
+.scrollhero-stage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   z-index: 2;
+  width: 100%;
+  max-width: var(--container);
+  padding: 0 32px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 0.86fr);
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
   align-items: center;
-  gap: clamp(40px, 6vw, 90px);
+  gap: clamp(40px, 5vw, 80px);
 }
 
-.hero-v2-copy { max-width: 560px; }
-.hero-v2-copy h1 { margin-bottom: 22px; letter-spacing: -0.035em; }
-.hero-v2-copy h1 em { font-style: italic; color: var(--gold-bright); }
-.hero-v2-copy .hero-actions { margin-top: 40px; }
+.sh-left { display: flex; flex-direction: column; gap: 36px; }
 
-/* The figure: a bounded square panel, not the whole viewport. The canvas
-   sizes itself to this container (see js/galaxy-v.js), so confining the box
-   automatically confines the effect — it reads as a diagram, not a wash. */
-.hero-v2-figure {
+.sh-intro { display: flex; flex-direction: column; gap: 18px; }
+.sh-intro h1 { font-size: clamp(2.1rem, 3.3vw, 3.15rem); letter-spacing: -0.03em; }
+.sh-intro h1 em { font-style: italic; color: var(--gold-bright); }
+.sh-intro .lede { margin: 0; }
+
+.sh-actions { display: flex; gap: 18px; flex-wrap: wrap; }
+
+.sh-right { display: flex; flex-direction: column; gap: 20px; }
+
+.sh-panel {
   position: relative;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 4 / 3;
   width: 100%;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  overflow: hidden;
   background: var(--bg-soft);
+  overflow: hidden;
 }
 
-.hero-v2-bg {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
+.sh-svg { position: absolute; inset: 28px; width: calc(100% - 56px); height: calc(100% - 56px); }
+.sh-axis line { stroke: var(--border); stroke-width: 1; }
+.sh-chart-line {
+  fill: none;
+  stroke: var(--gold-bright);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 10px rgba(223, 247, 255, 0.35));
 }
 
-/* Caption strip along the bottom edge of the figure, like a chart label —
-   pure typography, no icon, no badge. */
-.hero-v2-figcap {
+.sh-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.sh-stat { padding: 18px 16px; border-right: 1px solid var(--border); }
+.sh-stat:last-child { border-right: none; }
+.sh-num {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--gold-bright);
+  margin-bottom: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.sh-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.scrollhero-progress {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 2;
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 14px 18px;
-  border-top: 1px solid var(--border);
-  background: linear-gradient(0deg, var(--bg-soft) 0%, transparent 100%);
+  height: 2px;
+  background: var(--border);
+  z-index: 3;
+}
+.scrollhero-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--gold-bright);
+}
+
+.scrollhero-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  z-index: 3;
   font-family: var(--font-mono);
-  font-size: 0.66rem;
-  letter-spacing: 0.06em;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: var(--text-faint);
-  pointer-events: none;
+  transition: opacity 0.4s var(--ease);
+}
+.scrollhero-hint::after {
+  content: "";
+  display: block;
+  width: 1px;
+  height: 22px;
+  background: var(--text-faint);
+  margin: 8px auto 0;
+  animation: sh-hint-scroll 1.8s ease-in-out infinite;
+}
+@keyframes sh-hint-scroll {
+  0%, 100% { transform: scaleY(0.4); opacity: 0.4; }
+  50% { transform: scaleY(1); opacity: 1; }
 }
 
 @media (max-width: 900px) {
-  .hero-v2 { padding: 120px 0 60px; }
-  .hero-v2-inner {
-    grid-template-columns: 1fr;
-    gap: 40px;
+  .scrollhero { height: auto; }
+  .scrollhero-pin {
+    position: static;
+    height: auto;
+    overflow: visible;
+    padding: 130px 0 70px;
   }
-  .hero-v2-copy { max-width: none; }
-  .hero-v2-figure { aspect-ratio: 4 / 3; }
-  .hero-v2-figcap span:last-child { display: none; }
+  .scrollhero-stage {
+    position: static;
+    transform: none;
+    margin: 0 auto;
+    grid-template-columns: 1fr;
+    gap: 44px;
+  }
+  .sh-panel { aspect-ratio: 4 / 3; }
+  .scrollhero-progress, .scrollhero-hint { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scrollhero-hint { display: none; }
+}
+
+/* Applied by js/scroll-hero.js (not a media query, since this tracks the
+   prefers-reduced-motion *setting*, independent of viewport width) — same
+   un-pinned, statically-resolved layout as the mobile breakpoint, but
+   keeps the two-column arrangement since it's about motion, not space. */
+.scrollhero.sh-nopin { height: auto; }
+.scrollhero.sh-nopin .scrollhero-pin {
+  position: static;
+  height: auto;
+  overflow: visible;
+  padding: 130px 0 70px;
+}
+.scrollhero.sh-nopin .scrollhero-stage {
+  position: static;
+  transform: none;
+  margin: 0 auto;
+}
+.scrollhero.sh-nopin .scrollhero-progress,
+.scrollhero.sh-nopin .scrollhero-hint {
+  display: none;
 }
 
 /* ---------- Cards ---------- */

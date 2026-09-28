@@ -45,36 +45,65 @@
   <a href="/contact/">Contact</a>
 </div>
 
-<!-- HERO v3 — asymmetric two-column layout: copy fixed left, spiral-galaxy
-     graphic confined to a defined panel on the right rather than washed full-
-     bleed across the whole viewport. The graphic reads as a data figure with
-     a caption, not a decorative background effect. Full rebuild of the
-     homepage hero only; every other page keeps its existing design. -->
-<header class="hero-v2 scene" id="main">
-  <div class="hero-v2-grid" aria-hidden="true"></div>
+<!-- SCROLL HERO — full rebuild. A single pinned viewport that narrates the
+     product story as you scroll: a calm typographic opening, then a field of
+     scattered data points fades in, then those points migrate into an
+     ascending line chart while stat counters resolve — literally dramatizing
+     "scattered platform data becoming a dashboard your team uses". Nav stays
+     fixed on top throughout (unchanged). Driven by js/scroll-hero.js.
+     Homepage only; every other page keeps its existing design. -->
+<section class="scrollhero" id="main">
+  <div class="scrollhero-pin">
+    <div class="scrollhero-grid" aria-hidden="true"></div>
 
-  <div class="container hero-v2-inner">
-    <div class="hero-v2-copy">
-      <div class="eyebrow eyebrow-ice reveal visible">Clarity across Google Analytics 4, Google Ads, SEO &amp; social.</div>
-      <h1 class="reveal visible">Clearer reporting. Trusted dashboards. <em>Better decisions.</em></h1>
-      <p class="lede reveal visible">Veld Analytics builds trusted reporting for Google Analytics 4, Google Ads, SEO, paid social, and organic social, turning scattered platform data into dashboards your team actually uses.</p>
-      <div class="hero-actions reveal visible">
-        <a href="/contact/" class="btn btn-primary">Book a free reporting review <span class="btn-arrow">→</span></a>
-        <a href="/approach/#method" class="btn btn-ghost">Explore the method</a>
+    <div class="scrollhero-stage">
+      <div class="sh-left">
+        <div class="sh-intro" data-sh="intro">
+          <div class="eyebrow eyebrow-ice">Clarity across Google Analytics 4, Google Ads, SEO &amp; social.</div>
+          <h1>Clearer reporting.<br>Trusted dashboards.<br><em>Better decisions.</em></h1>
+          <p class="lede">Veld Analytics builds trusted reporting for Google Analytics 4, Google Ads, SEO, paid social, and organic social, turning scattered platform data into dashboards your team actually uses.</p>
+        </div>
+        <div class="sh-actions" data-sh="actions">
+          <a href="/contact/" class="btn btn-primary">Book a free reporting review <span class="btn-arrow">→</span></a>
+          <a href="/approach/#method" class="btn btn-ghost">Explore the method</a>
+        </div>
+      </div>
+
+      <div class="sh-right">
+        <div class="sh-panel">
+          <svg class="sh-svg" viewBox="0 0 1000 720" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <g class="sh-axis"></g>
+            <path class="sh-chart-line" d="" />
+            <g class="sh-points"></g>
+          </svg>
+        </div>
+        <div class="sh-stats" data-sh="stats">
+          <div class="sh-stat">
+            <span class="sh-num" data-target="4218" data-format="int">0</span>
+            <span class="sh-label">GA4 sessions / week</span>
+          </div>
+          <div class="sh-stat">
+            <span class="sh-num" data-target="68.4" data-format="pct">0</span>
+            <span class="sh-label">Organic share</span>
+          </div>
+          <div class="sh-stat">
+            <span class="sh-num" data-target="12940" data-format="gbp">0</span>
+            <span class="sh-label">Tracked ad spend</span>
+          </div>
+          <div class="sh-stat">
+            <span class="sh-num" data-target="6" data-format="int">0</span>
+            <span class="sh-label">Platforms unified</span>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="hero-v2-figure reveal visible">
-      <div id="galaxy-v-bg" class="hero-v2-bg" aria-hidden="true"></div>
-      <div class="hero-v2-figcap" aria-hidden="true">
-        <span>GA4 · Google Ads · SEO · Social</span>
-        <span>53.4808°N 2.2426°W — Manchester</span>
-      </div>
-    </div>
+    <div class="scrollhero-progress" aria-hidden="true"><div class="scrollhero-progress-fill"></div></div>
+    <div class="scrollhero-hint" data-sh="hint" aria-hidden="true"><span>Scroll</span></div>
   </div>
-</header>
+</section>
 
 <script src="/js/main.js"></script>
-<script src="/js/galaxy-v.js"></script>
+<script src="/js/hero.js"></script>
 </body>
 </html>
