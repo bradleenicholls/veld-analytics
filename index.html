@@ -8,7 +8,7 @@
 <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,450;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -45,64 +45,91 @@
   <a href="/contact/">Contact</a>
 </div>
 
-<!-- SCROLL HERO — full rebuild. A single pinned viewport that narrates the
-     product story as you scroll: a calm typographic opening, then a field of
-     scattered data points fades in, then those points migrate into an
-     ascending line chart while stat counters resolve — literally dramatizing
-     "scattered platform data becoming a dashboard your team uses". Nav stays
-     fixed on top throughout (unchanged). Driven by js/scroll-hero.js.
-     Homepage only; every other page keeps its existing design. -->
-<section class="scrollhero" id="main">
-  <div class="scrollhero-pin">
-    <div class="scrollhero-grid" aria-hidden="true"></div>
+<!-- HERO v4 — full rebuild per client direction: nothing in the hero but one
+     live, scroll-driven component. A field of particles drifts continuously
+     (the "live moving background"), and as the visitor scrolls down through
+     the pinned viewport, those particles converge to form the wordmark
+     "Veld Analytics", then a short line and the primary CTA resolve. Once
+     formed, the pin releases and the page continues normally below. Built
+     with GSAP + ScrollTrigger (loaded from cdnjs) per the anti-slop skill's
+     hard ban on hand-rolled `window.addEventListener('scroll')` progress
+     tracking. Driven by js/hero.js. Homepage only. -->
+<header class="hero-form scene" id="main">
+  <div class="hero-form-pin">
+    <canvas id="hero-canvas" class="hero-form-canvas" aria-hidden="true"></canvas>
 
-    <div class="scrollhero-stage">
-      <div class="sh-left">
-        <div class="sh-intro" data-sh="intro">
-          <div class="eyebrow eyebrow-ice">Clarity across Google Analytics 4, Google Ads, SEO &amp; social.</div>
-          <h1>Clearer reporting.<br>Trusted dashboards.<br><em>Better decisions.</em></h1>
-          <p class="lede">Veld Analytics builds trusted reporting for Google Analytics 4, Google Ads, SEO, paid social, and organic social, turning scattered platform data into dashboards your team actually uses.</p>
-        </div>
-        <div class="sh-actions" data-sh="actions">
-          <a href="/contact/" class="btn btn-primary">Book a free reporting review <span class="btn-arrow">→</span></a>
-          <a href="/approach/#method" class="btn btn-ghost">Explore the method</a>
-        </div>
-      </div>
+    <!-- Real, always-present heading for SEO/screen readers — the canvas
+         formation above is decorative, this is the actual page title. -->
+    <h1 class="sr-only">Veld Analytics: GA4, Google Ads, SEO and social reporting</h1>
 
-      <div class="sh-right">
-        <div class="sh-panel">
-          <svg class="sh-svg" viewBox="0 0 1000 720" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-            <g class="sh-axis"></g>
-            <path class="sh-chart-line" d="" />
-            <g class="sh-points"></g>
-          </svg>
-        </div>
-        <div class="sh-stats" data-sh="stats">
-          <div class="sh-stat">
-            <span class="sh-num" data-target="4218" data-format="int">0</span>
-            <span class="sh-label">GA4 sessions / week</span>
-          </div>
-          <div class="sh-stat">
-            <span class="sh-num" data-target="68.4" data-format="pct">0</span>
-            <span class="sh-label">Organic share</span>
-          </div>
-          <div class="sh-stat">
-            <span class="sh-num" data-target="12940" data-format="gbp">0</span>
-            <span class="sh-label">Tracked ad spend</span>
-          </div>
-          <div class="sh-stat">
-            <span class="sh-num" data-target="6" data-format="int">0</span>
-            <span class="sh-label">Platforms unified</span>
-          </div>
-        </div>
+    <div class="hero-form-tagline" data-hf="tagline">
+      <p>Clarity across Google Analytics 4, Google Ads, SEO and social. Reporting you can actually trust.</p>
+      <div class="hero-actions">
+        <a href="/contact/" class="btn btn-primary">Book a free reporting review <span class="btn-arrow">→</span></a>
+        <a href="/approach/#method" class="btn btn-ghost">Explore the method</a>
       </div>
     </div>
+  </div>
+</header>
 
-    <div class="scrollhero-progress" aria-hidden="true"><div class="scrollhero-progress-fill"></div></div>
-    <div class="scrollhero-hint" data-sh="hint" aria-hidden="true"><span>Scroll</span></div>
+<section class="tight">
+  <div class="container-narrow" style="text-align:center;">
+    <h2 class="reveal">One team, every reporting surface</h2>
+    <p class="lede reveal" style="margin:18px auto 0;text-align:center;">Google Analytics 4, Google Ads, SEO, and paid and organic social, brought into dashboards your team opens without dreading it. <a href="/services/" style="color:var(--gold-bright);font-weight:600;">See how we work</a>.</p>
   </div>
 </section>
 
+<section class="tight">
+  <div class="container">
+    <div class="cta-banner reveal">
+      <div>
+        <h2 style="max-width:520px;">Ready to see your data in one place?</h2>
+      </div>
+      <a href="/contact/" class="btn btn-primary">Book a free reporting review <span class="btn-arrow">→</span></a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-top">
+      <div style="max-width:340px;">
+        <a href="/" class="nav-logo">
+          <span class="nav-logo-text">Veld<span>.</span>Analytics</span>
+        </a>
+        <p class="lede" style="margin-top:18px;font-size:0.95rem;">Clarity across Google Analytics 4, Google Ads, SEO, and social reporting. Boutique reporting for performance marketing teams who need decisions they can trust.</p>
+      </div>
+      <div class="footer-cols">
+        <div class="footer-col">
+          <h4>Navigate</h4>
+          <a href="/services/">Services</a>
+          <a href="/work/">Work</a>
+          <a href="/approach/">Approach</a>
+          <a href="/about/">About</a>
+          <a href="/contact/">Contact</a>
+        </div>
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <p>veldanalytics@gmail.com</p>
+          <p>+44 7415 054762</p>
+          <p>Manchester &middot; Remote-first</p>
+        </div>
+        <div class="footer-col">
+          <h4>Connect</h4>
+          <a href="https://www.linkedin.com/in/bradleenicholls" target="_blank" rel="noopener">LinkedIn</a>
+          <a href="https://bradleenicholls.com/" target="_blank" rel="noopener">My Portfolio</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Veld Analytics. All rights reserved.</p>
+      <p>Clarity across Google Analytics 4, Google Ads, SEO, and social reporting.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="/js/main.js"></script>
 <script src="/js/hero.js"></script>
 </body>
