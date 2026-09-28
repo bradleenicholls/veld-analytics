@@ -117,20 +117,23 @@ textarea:focus-visible {
   padding: 0 32px;
 }
 
-/* ---------- Typography ---------- */
-h1, h2, h3, h4 {
+/* ---------- Typography ----------
+   Display weight held at 400 across h1-h3 ("magazine-quiet, never bold" —
+   Cursor's DESIGN.md reference) instead of the previous 500. h4 stays 600:
+   it's functioning as a small component/card title, not a display size. */
+h1, h2, h3 {
   font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: 400;
   letter-spacing: -0.01em;
   line-height: 1.12;
   color: var(--text);
   text-wrap: balance;
 }
 
-h1 { font-size: clamp(2.6rem, 5.5vw, 4.6rem); font-weight: 500; }
+h1 { font-size: clamp(2.6rem, 5.5vw, 4.6rem); font-weight: 400; }
 h2 { font-size: clamp(2rem, 3.6vw, 3rem); }
-h3 { font-size: clamp(1.3rem, 2vw, 1.7rem); font-weight: 500; }
-h4 { font-size: 1.1rem; font-weight: 600; font-family: var(--font-body); }
+h3 { font-size: clamp(1.3rem, 2vw, 1.7rem); font-weight: 400; }
+h4 { font-size: 1.1rem; font-weight: 600; font-family: var(--font-body); letter-spacing: -0.01em; line-height: 1.12; color: var(--text); text-wrap: balance; }
 
 p { color: var(--text-muted); }
 
@@ -172,13 +175,17 @@ p { color: var(--text-muted); }
   background: var(--gold-bright);
 }
 
-/* ---------- Buttons ---------- */
+/* ---------- Buttons ----------
+   8px radius, not a full pill — Cursor's DESIGN.md calls this out
+   specifically as their "developer dialect": compact, boxy CTAs. Pill
+   stays reserved for small badges/tags and the segmented toggle controls
+   in the demo dashboard, which read differently (tab switches, not CTAs). */
 .btn {
   display: inline-flex;
   align-items: center;
   gap: 10px;
   padding: 14px 26px;
-  border-radius: 999px;
+  border-radius: 8px;
   font-family: var(--font-body);
   font-size: 0.92rem;
   font-weight: 600;
@@ -388,95 +395,32 @@ hr.rule {
 .hero-meta div { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-faint); letter-spacing: 0.04em; }
 .hero-meta strong { display: block; color: var(--text); font-family: var(--font-body); font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
 
-/* ---------- Hero Form (homepage-only redesign) ----------
-   Nothing in the hero but one live component: a field of particles drifts
-   continuously (canvas, js/hero.js — the "live moving background"), and
-   scrolling through the pinned viewport converges those particles into the
-   "Veld Analytics" wordmark, then reveals the tagline and CTA. Driven by
-   GSAP + ScrollTrigger (loaded from cdnjs in index.html) rather than a
-   hand-rolled scroll listener.
-
-   Progressive enhancement: the tagline/CTA block below is visible by
-   default in plain CSS (centred, static) — if JS or the canvas fails for
-   any reason, the visitor still sees a normal, readable, static hero, just
-   without the particle wordmark. The real page <h1> is visually hidden
-   (.sr-only) since the canvas forms the wordmark visually, but stays in
-   the accessibility tree for screen readers and SEO. */
-.hero-form {
-  /* Shorter scroll runway than a typical scrollytelling pin (was 280vh) —
-     the wordmark should finish forming quickly, near the top of the page,
-     not require scrolling halfway down before it resolves. */
-  height: 160vh;
+/* ---------- Hero (homepage) ----------
+   Blank except one live component, per client direction — no background
+   effects, no headline copy, no CTA of its own. The working sample
+   dashboard (js/demo-dashboard.js, shared with /work/) is the entire hero.
+   The real page <h1> stays in the DOM for SEO/screen readers via
+   .sr-only, visually replaced by the dashboard. */
+.hero-blank {
   position: relative;
-}
-
-.hero-form-pin {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  height: 100svh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-}
-
-.hero-form-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
   z-index: 1;
-  pointer-events: none;
+  padding: 150px 0 90px;
 }
 
-.hero-form-tagline {
-  position: relative;
-  z-index: 2;
-  max-width: 560px;
-  margin: 0 auto;
-  padding: 0 32px;
-  text-align: center;
-  /* Sits below where the canvas forms the wordmark (vertically centred
-     around ~42% of the viewport in js/hero.js) — tuned, not exact. */
-  margin-top: 50vh;
+/* Hairline-only depth for the hero's dashboard instance specifically
+   (Cursor DESIGN.md: "no drop shadows — hairline depth carries the
+   layering"), toned down from the heavier glow used on /work/ where the
+   dashboard is a supporting section rather than the entire hero. */
+.hero-blank .demo-dashboard {
+  box-shadow: none;
+  border: 1px solid var(--border-strong);
 }
-.hero-form-tagline p {
-  font-size: clamp(1rem, 1.6vw, 1.2rem);
-  color: var(--text-muted);
-  line-height: 1.6;
-}
-.hero-form-tagline .hero-actions {
-  display: flex;
-  justify-content: center;
-  gap: 18px;
-  flex-wrap: wrap;
-  margin-top: 28px;
+.hero-blank .demo-dashboard::before {
+  opacity: 0.5;
 }
 
 @media (max-width: 900px) {
-  .hero-form { height: auto; }
-  .hero-form-pin {
-    position: static;
-    height: auto;
-    overflow: visible;
-    padding: 150px 0 60px;
-  }
-  .hero-form-canvas { display: none; }
-  .hero-form-tagline { margin-top: 0; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-form-canvas { display: none; }
-  .hero-form { height: auto; }
-  .hero-form-pin {
-    position: static;
-    height: auto;
-    overflow: visible;
-    padding: 150px 0 60px;
-  }
-  .hero-form-tagline { margin-top: 0; }
+  .hero-blank { padding: 120px 0 60px; }
 }
 
 /* ---------- Cards ---------- */
@@ -668,15 +612,6 @@ footer {
   z-index: 1;
   padding: 180px 0 90px;
   border-bottom: 1px solid var(--border);
-}
-/* Guarantees the headline/copy paint above the absolutely-positioned,
-   z-index:0 Galaxy canvas (.topo-bg) that now sits behind every page-hero —
-   a static, non-positioned .container would otherwise risk stacking under
-   a positioned z-index:0 sibling per CSS painting order. Mirrors the same
-   fix already used for .scene > .container. */
-.page-hero > .container {
-  position: relative;
-  z-index: 2;
 }
 .page-hero h1 { max-width: 760px; }
 .page-hero-compact { padding-bottom: 70px; border-bottom: none; }
@@ -1054,27 +989,7 @@ body { perspective: none; }
   .ambient-bg::after { opacity: 0.3; }
 }
 
-/* ---------- Galaxy WebGL background (all hero sections) ----------
-   Mount point for js/galaxy-bg.js — one live instance per hero (the
-   homepage hero-form-pin, and every interior page's .page-hero). Auto
-   pointer-events so the shader's mouse-repulsion works over empty
-   background space; any real UI (nav, headline, buttons) sits at a higher
-   z-index and still receives clicks first regardless. */
-.topo-bg {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-  pointer-events: auto;
-  background: transparent;
-}
-.topo-bg canvas {
-  display: block;
-  width: 100% !important;
-  height: 100% !important;
-}
-
-/* ---------- Interactive demo dashboard (Approach page) ----------
+/* ---------- Interactive demo dashboard (also used in the homepage hero) ----------
    A working, hoverable sample of the kind of reporting we build —
    not a screenshot. Reuses the site's existing tokens (surface,
    border, mono labels, gold/gold-bright accents) so it reads as part
