@@ -45,114 +45,161 @@
   <a href="/contact/">Contact</a>
 </div>
 
-<!-- HERO v7 — split layout: copy (eyebrow/h1/lede/CTA) on the left, a
-     compact instance of the working sample dashboard (js/demo-dashboard.js,
-     shared with /work/) on the right as visual proof. No background
-     effects. The right-hand instance drops the platform row, channel
-     breakdown, pie, table and stackbar sections — demo-dashboard.js
-     null-guards all of those, so this is a supported "compact mode", not a
-     hack. Homepage only. -->
-<header class="hero-split" id="main">
-  <div class="container hero-split-grid">
-    <div class="hero-split-copy">
-      <div class="eyebrow">Clarity across the data landscape</div>
-      <h1 class="reveal visible">Reporting for Google Analytics 4, Google Ads, SEO and social you can actually trust.</h1>
-      <p class="lede reveal visible">See exactly what's happening across every channel in one dashboard your team will actually open — like the one on the right.</p>
+<!-- HERO v8 — the split (side-by-side) layout was clipping the dashboard
+     at narrower desktop widths, so back to stacked: short copy centred on
+     top, then the working sample dashboard (js/demo-dashboard.js, shared
+     with /work/) full-width beneath it, room to breathe. No background
+     effects. Homepage only. -->
+<header class="hero-stack" id="main">
+  <div class="container">
+    <div class="hero-stack-copy">
+      <div class="eyebrow" style="justify-content:center;">Clarity across the data landscape</div>
+      <h1 class="reveal visible">Reporting you can actually trust.</h1>
+      <p class="lede reveal visible">GA4, Google Ads, SEO and social — in one dashboard your team will actually open.</p>
       <div class="hero-actions">
         <a href="/contact/" class="btn btn-primary">Book a free reporting review <span class="btn-arrow">→</span></a>
         <a href="/approach/#method" class="btn btn-ghost">Explore the method</a>
       </div>
     </div>
-    <div class="hero-split-demo">
-      <div class="demo-dashboard reveal visible">
-        <div class="demo-toolbar">
-          <div class="demo-toolbar-left">
-            <div class="demo-toolbar-label" id="demo-toolbar-label">Website overview</div>
-            <div class="demo-type-toggle" role="group" aria-label="Dashboard type">
-              <button type="button" data-demo-type="ga4" class="active">GA4</button>
-              <button type="button" data-demo-type="ppc">PPC</button>
-              <button type="button" data-demo-type="seo">SEO</button>
-              <button type="button" data-demo-type="social">Social</button>
-            </div>
-          </div>
-          <div class="demo-range-toggle" role="group" aria-label="Date range">
-            <button type="button" data-range="7d" class="active">7D</button>
-            <button type="button" data-range="30d">30D</button>
-            <button type="button" data-range="90d">90D</button>
+    <div class="demo-dashboard demo-dashboard-lg reveal visible">
+      <div class="demo-toolbar">
+        <div class="demo-toolbar-left">
+          <div class="demo-toolbar-label" id="demo-toolbar-label">Website overview</div>
+          <div class="demo-type-toggle" role="group" aria-label="Dashboard type">
+            <button type="button" data-demo-type="ga4" class="active">GA4</button>
+            <button type="button" data-demo-type="ppc">PPC</button>
+            <button type="button" data-demo-type="seo">SEO</button>
+            <button type="button" data-demo-type="social">Social</button>
           </div>
         </div>
-        <div class="demo-stats">
-          <div class="demo-stat">
-            <span class="label" data-label="0">Users</span>
-            <span class="num" data-stat="0">9,850</span>
-            <span class="delta up" data-delta="0">▲ 4.6%</span>
-          </div>
-          <div class="demo-stat">
-            <span class="label" data-label="1">Sessions</span>
-            <span class="num" data-stat="1">12,480</span>
-            <span class="delta up" data-delta="1">▲ 5.1%</span>
-          </div>
-          <div class="demo-stat">
-            <span class="label" data-label="2">Clicks</span>
-            <span class="num" data-stat="2">3,120</span>
-            <span class="delta up" data-delta="2">▲ 7.8%</span>
-          </div>
-          <div class="demo-stat">
-            <span class="label" data-label="3">Revenue</span>
-            <span class="num" data-stat="3">£18,240</span>
-            <span class="delta up" data-delta="3">▲ 8.2%</span>
+        <div class="demo-range-toggle" role="group" aria-label="Date range">
+          <button type="button" data-range="7d" class="active">7D</button>
+          <button type="button" data-range="30d">30D</button>
+          <button type="button" data-range="90d">90D</button>
+        </div>
+      </div>
+      <div class="demo-platform-row" id="demo-platform-row">
+        <span class="demo-platform-label">Platform</span>
+        <div class="demo-platform-toggle" role="group" aria-label="Platform filter">
+          <button type="button" data-platform="all" class="active">All platforms</button>
+          <button type="button" data-platform="instagram">Instagram</button>
+          <button type="button" data-platform="tiktok">TikTok</button>
+          <button type="button" data-platform="meta">Meta</button>
+        </div>
+      </div>
+      <div class="demo-stats demo-stats-6">
+        <div class="demo-stat">
+          <span class="label" data-label="0">Users</span>
+          <span class="num" data-stat="0">9,850</span>
+          <span class="delta up" data-delta="0">▲ 4.6%</span>
+        </div>
+        <div class="demo-stat">
+          <span class="label" data-label="1">Sessions</span>
+          <span class="num" data-stat="1">12,480</span>
+          <span class="delta up" data-delta="1">▲ 5.1%</span>
+        </div>
+        <div class="demo-stat">
+          <span class="label" data-label="2">Clicks</span>
+          <span class="num" data-stat="2">3,120</span>
+          <span class="delta up" data-delta="2">▲ 7.8%</span>
+        </div>
+        <div class="demo-stat">
+          <span class="label" data-label="3">Revenue</span>
+          <span class="num" data-stat="3">£18,240</span>
+          <span class="delta up" data-delta="3">▲ 8.2%</span>
+        </div>
+        <div class="demo-stat">
+          <span class="label" data-label="4">Conversion rate</span>
+          <span class="num" data-stat="4">3.4%</span>
+          <span class="delta up" data-delta="4">▲ 0.6pp</span>
+        </div>
+        <div class="demo-stat">
+          <span class="label" data-label="5">Avg. order value</span>
+          <span class="num" data-stat="5">£64.20</span>
+          <span class="delta down" data-delta="5">▼ 1.2%</span>
+        </div>
+      </div>
+      <div class="demo-chart-wrap demo-chart-wrap-lg">
+        <div class="demo-chart-head">
+          <div class="demo-chart-label" id="demo-chart-label">Sessions trend</div>
+          <div class="demo-metric-toggle" id="demo-metric-toggle" role="group" aria-label="Chart metric">
+            <button type="button" data-metric="users">Users</button>
+            <button type="button" data-metric="sessions" class="active">Sessions</button>
+            <button type="button" data-metric="clicks">Clicks</button>
+            <button type="button" data-metric="revenue">Revenue</button>
           </div>
         </div>
-        <div class="demo-chart-wrap">
-          <div class="demo-chart-head">
-            <div class="demo-chart-label" id="demo-chart-label">Sessions trend</div>
-            <div class="demo-metric-toggle" id="demo-metric-toggle" role="group" aria-label="Chart metric">
-              <button type="button" data-metric="users">Users</button>
-              <button type="button" data-metric="sessions" class="active">Sessions</button>
-              <button type="button" data-metric="clicks">Clicks</button>
-              <button type="button" data-metric="revenue">Revenue</button>
-            </div>
+        <svg id="demo-chart" viewBox="0 0 900 300" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="demoChartGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#DFF7FF" stop-opacity="0.4"/>
+              <stop offset="45%" stop-color="#82A7FF" stop-opacity="0.16"/>
+              <stop offset="100%" stop-color="#82A7FF" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <g class="demo-chart-grid">
+            <line x1="0" y1="16" x2="900" y2="16"/>
+            <line x1="0" y1="141" x2="900" y2="141"/>
+            <line x1="0" y1="266" x2="900" y2="266"/>
+          </g>
+          <path class="demo-chart-area" id="demo-chart-area" fill="url(#demoChartGradient)" d=""/>
+          <path class="demo-chart-line" id="demo-chart-line" d=""/>
+          <g id="demo-chart-dots"></g>
+          <line class="demo-hover-line" id="demo-hover-line" x1="0" y1="16" x2="0" y2="266"/>
+          <circle class="demo-hover-dot" id="demo-hover-dot" r="4.5"/>
+          <rect class="demo-chart-overlay" id="demo-chart-overlay" x="0" y="0" width="900" height="300"/>
+        </svg>
+        <div class="demo-tooltip" id="demo-tooltip"></div>
+      </div>
+      <div class="demo-breakdown-label" id="demo-breakdown-label">Traffic channels</div>
+      <div class="demo-channels" id="demo-channels">
+        <div class="demo-channel">
+          <div class="demo-channel-top"><span>Organic</span><span class="pct">38%</span></div>
+          <div class="demo-channel-bar"><div class="demo-channel-fill" style="width:38%;"></div></div>
+        </div>
+        <div class="demo-channel">
+          <div class="demo-channel-top"><span>Paid</span><span class="pct">29%</span></div>
+          <div class="demo-channel-bar"><div class="demo-channel-fill" style="width:29%;"></div></div>
+        </div>
+        <div class="demo-channel">
+          <div class="demo-channel-top"><span>Direct</span><span class="pct">21%</span></div>
+          <div class="demo-channel-bar"><div class="demo-channel-fill" style="width:21%;"></div></div>
+        </div>
+        <div class="demo-channel">
+          <div class="demo-channel-top"><span>Referral</span><span class="pct">12%</span></div>
+          <div class="demo-channel-bar"><div class="demo-channel-fill" style="width:12%;"></div></div>
+        </div>
+      </div>
+
+      <div class="demo-extra-row" id="demo-extra-row">
+        <div class="demo-extra-col demo-pie-col">
+          <div class="demo-breakdown-label" id="demo-pie-label">Audience by age</div>
+          <div class="demo-pie-wrap">
+            <svg id="demo-pie" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+              <g id="demo-pie-segments" transform="rotate(-90 100 100)"></g>
+            </svg>
+            <div class="demo-pie-legend" id="demo-pie-legend"></div>
           </div>
-          <svg id="demo-chart" viewBox="0 0 900 300" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="demoChartGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#DFF7FF" stop-opacity="0.4"/>
-                <stop offset="45%" stop-color="#82A7FF" stop-opacity="0.16"/>
-                <stop offset="100%" stop-color="#82A7FF" stop-opacity="0"/>
-              </linearGradient>
-            </defs>
-            <g class="demo-chart-grid">
-              <line x1="0" y1="16" x2="900" y2="16"/>
-              <line x1="0" y1="141" x2="900" y2="141"/>
-              <line x1="0" y1="266" x2="900" y2="266"/>
-            </g>
-            <path class="demo-chart-area" id="demo-chart-area" fill="url(#demoChartGradient)" d=""/>
-            <path class="demo-chart-line" id="demo-chart-line" d=""/>
-            <g id="demo-chart-dots"></g>
-            <line class="demo-hover-line" id="demo-hover-line" x1="0" y1="16" x2="0" y2="266"/>
-            <circle class="demo-hover-dot" id="demo-hover-dot" r="4.5"/>
-            <rect class="demo-chart-overlay" id="demo-chart-overlay" x="0" y="0" width="900" height="300"/>
+        </div>
+        <div class="demo-extra-col demo-table-col">
+          <div class="demo-breakdown-label" id="demo-table-label">Top pages by views</div>
+          <table class="demo-table">
+            <thead>
+              <tr><th id="demo-table-col1">Page title</th><th id="demo-table-col2">Views</th></tr>
+            </thead>
+            <tbody id="demo-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="demo-stackbar-section">
+        <div class="demo-breakdown-label" id="demo-stackbar-title">First user channel group, by month</div>
+        <div class="demo-stackbar-wrap">
+          <svg id="demo-stackbar" viewBox="0 0 900 260" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <g id="demo-stackbar-bars"></g>
+            <g id="demo-stackbar-labels"></g>
           </svg>
-          <div class="demo-tooltip" id="demo-tooltip"></div>
-        </div>
-        <div class="demo-breakdown-label" id="demo-breakdown-label">Traffic channels</div>
-        <div class="demo-channels" id="demo-channels">
-          <div class="demo-channel">
-            <div class="demo-channel-top"><span>Organic</span><span class="pct">38%</span></div>
-            <div class="demo-channel-bar"><div class="demo-channel-fill" style="width:38%;"></div></div>
-          </div>
-          <div class="demo-channel">
-            <div class="demo-channel-top"><span>Paid</span><span class="pct">29%</span></div>
-            <div class="demo-channel-bar"><div class="demo-channel-fill" style="width:29%;"></div></div>
-          </div>
-          <div class="demo-channel">
-            <div class="demo-channel-top"><span>Direct</span><span class="pct">21%</span></div>
-            <div class="demo-channel-bar"><div class="demo-channel-fill" style="width:21%;"></div></div>
-          </div>
-          <div class="demo-channel">
-            <div class="demo-channel-top"><span>Referral</span><span class="pct">12%</span></div>
-            <div class="demo-channel-bar"><div class="demo-channel-fill" style="width:12%;"></div></div>
-          </div>
+          <div class="demo-stackbar-legend" id="demo-stackbar-legend"></div>
         </div>
       </div>
     </div>
