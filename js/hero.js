@@ -1,200 +1,244 @@
-// Veld Analytics — homepage scroll hero
-// Drives the pinned hero's narrative purely off scroll progress: a field of
-// scattered points fades in, migrates into an ascending line chart, the
-// chart draws itself on, and the stat readout counts up — dramatizing
-// "scattered platform data becoming a dashboard your team uses".
+// Veld Analytics — homepage hero
+// One live component, nothing else in the hero. A field of particles drifts
+// continuously (the "live moving background"), always visible from load.
+// As the visitor scrolls down through the pinned hero, those particles
+// converge into the "VELD ANALYTICS" wordmark; once formed, the tagline and
+// CTA (already present in the DOM as a static fallback) get their entrance
+// treatment and the pin releases into the rest of the page.
 //
-// Pinning is CSS-only (`position: sticky`); this file only ever reads
-// scroll position and writes transform/opacity/SVG coordinates, batched via
-// requestAnimationFrame and gated by IntersectionObserver so nothing runs
-// while the hero is off-screen. Falls back to a fully visible, statically
-// resolved layout for prefers-reduced-motion or viewports under 901px
-// (see the .sh-nopin / max-width:900px rules in css/style.css) — same
-// resolved chart is computed once, not animated.
+// Scroll progress comes from GSAP ScrollTrigger's onUpdate (GSAP's own
+// internal, batched scroll observer) — never a hand-rolled
+// `window.addEventListener("scroll", ...)` — per the design-taste-frontend
+// skill's hard ban on that pattern. The pin itself is plain CSS
+// `position: sticky` (see .hero-form-pin in css/style.css); ScrollTrigger is
+// only used here to read a 0-1 progress value over the same span.
+//
+// Respects prefers-reduced-motion (canvas is hidden entirely via CSS in
+// that case, this script no-ops) and pauses the render loop when the hero
+// scrolls out of view or the tab is hidden.
 
 (function () {
-  const POINT_COUNT = 26;
-  const VB_W = 1000;
-  const VB_H = 720;
-  const MARGIN = 50;
-
-  // Colors mirror --gold / --gold-bright from css/style.css. Hardcoded here
-  // because these get interpolated per-frame as plain RGB, not swapped as
-  // discrete CSS values.
-  const GOLD = [130, 167, 255];
-  const GOLD_BRIGHT = [223, 247, 255];
-  const BORDER = "rgba(243, 241, 233, 0.14)";
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const isDesktop = () => window.matchMedia("(min-width: 901px)").matches;
 
   function lerp(a, b, t) { return a + (b - a) * t; }
   function clamp01(v) { return Math.max(0, Math.min(1, v)); }
-  function mapRange(v, a, b) { return clamp01((v - a) / (b - a)); }
-  // smoothstep-style ease for anything derived from mapRange
-  function ease(t) { return t * t * (3 - 2 * t); }
-  function mixColor(c1, c2, t) {
-    return `rgb(${Math.round(lerp(c1[0], c2[0], t))}, ${Math.round(lerp(c1[1], c2[1], t))}, ${Math.round(lerp(c1[2], c2[2], t))})`;
+  function easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   }
 
-  function buildPoints() {
-    const pts = [];
-    for (let i = 0; i < POINT_COUNT; i++) {
-      const t = i / (POINT_COUNT - 1);
-      const ox = MARGIN + t * (VB_W - MARGIN * 2);
-      const noise = (Math.sin(i * 12.9) * 0.5 + Math.sin(i * 3.7) * 0.5) * 34;
-      const oy = clampNum(VB_H - MARGIN - t * (VB_H - MARGIN * 2) + noise, MARGIN, VB_H - MARGIN);
-      pts.push({
-        sx: MARGIN + Math.random() * (VB_W - MARGIN * 2),
-        sy: MARGIN + Math.random() * (VB_H - MARGIN * 2),
-        ox,
-        oy,
-        appearAt: 0.05 + Math.random() * 0.2, // staggered appear start, within the appear window
-      });
-    }
-    return pts;
-  }
-  function clampNum(v, a, b) { return Math.max(a, Math.min(b, v)); }
-
-  function formatNum(target, format, t) {
-    const v = target * t;
-    if (format === "pct") return v.toFixed(1) + "%";
-    if (format === "gbp") return "£" + Math.round(v).toLocaleString("en-GB");
-    return Math.round(v).toLocaleString("en-GB");
-  }
+  // Brand accent, mirrors --gold / --gold-bright / --text-faint from
+  // css/style.css. Hardcoded because particle fills are computed per-frame
+  // as plain rgba, not swapped as discrete CSS values.
+  const ACCENT = [130, 167, 255]; // --gold
+  const ACCENT_BRIGHT = [223, 247, 255]; // --gold-bright
 
   document.addEventListener("DOMContentLoaded", () => {
-    const section = document.querySelector(".scrollhero");
-    if (!section) return;
+    const section = document.querySelector(".hero-form");
+    const canvas = document.getElementById("hero-canvas");
+    if (!section || !canvas || reduceMotion || !isDesktop()) return;
 
-    const pin = section.querySelector(".scrollhero-pin");
-    const svg = section.querySelector(".sh-svg");
-    const pointsGroup = section.querySelector(".sh-points");
-    const axisGroup = section.querySelector(".sh-axis");
-    const chartLine = section.querySelector(".sh-chart-line");
-    const actions = section.querySelector(".sh-actions");
-    const stats = section.querySelector(".sh-stats");
-    const hint = section.querySelector(".scrollhero-hint");
-    const progressFill = section.querySelector(".scrollhero-progress-fill");
-    const numEls = Array.from(section.querySelectorAll(".sh-num"));
+    const hasGsap = typeof window.gsap !== "undefined" && typeof window.ScrollTrigger !== "undefined";
+    if (!hasGsap) {
+      // GSAP failed to load (CDN blocked, offline, etc). The static
+      // tagline/CTA are already visible by default in CSS, so the hero
+      // still works, just without the particle wordmark. Nothing to fix
+      // here, just don't attempt the canvas.
+      console.warn("Veld hero: GSAP not available, skipping particle wordmark.");
+      return;
+    }
 
-    if (!svg || !pointsGroup || !chartLine) return;
+    gsap.registerPlugin(ScrollTrigger);
 
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const isDesktop = () => window.matchMedia("(min-width: 901px)").matches;
+    const ctx = canvas.getContext("2d");
+    let w = 0, h = 0, dpr = 1;
+    let textParticles = [];
+    let ambientParticles = [];
+    let progress = 0;
+    let running = false;
 
-    const points = buildPoints();
+    function setSize() {
+      w = Math.max(1, section.clientWidth || window.innerWidth);
+      h = Math.max(1, window.innerHeight);
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
 
-    // Static axis reference lines, drawn once.
-    axisGroup.innerHTML = `
-      <line x1="${MARGIN}" y1="${VB_H - MARGIN}" x2="${VB_W - MARGIN}" y2="${VB_H - MARGIN}" stroke="${BORDER}" />
-      <line x1="${MARGIN}" y1="${MARGIN}" x2="${MARGIN}" y2="${VB_H - MARGIN}" stroke="${BORDER}" />
-    `;
+    // Sample the wordmark into a point cloud using an offscreen canvas:
+    // draw the text, read back pixel alpha, keep the points that landed on
+    // a glyph. This is what lets the particle field "spell" real text
+    // instead of an abstract shape.
+    function sampleTextPoints() {
+      const off = document.createElement("canvas");
+      const offW = Math.min(Math.max(w * 0.86, 600), 1300);
+      const offH = 260;
+      off.width = offW;
+      off.height = offH;
+      const octx = off.getContext("2d");
+      octx.clearRect(0, 0, offW, offH);
+      octx.fillStyle = "#fff";
+      octx.textAlign = "center";
+      octx.textBaseline = "middle";
 
-    // Build the point <circle> elements once; only cx/cy/r/opacity/fill
-    // change per frame after this.
-    const ns = "http://www.w3.org/2000/svg";
-    points.forEach((p) => {
-      const c = document.createElementNS(ns, "circle");
-      c.setAttribute("r", "2.4");
-      pointsGroup.appendChild(c);
-      p.el = c;
+      const label = "VELD ANALYTICS";
+      let fontSize = 110;
+      octx.font = `700 ${fontSize}px "Space Grotesk", sans-serif`;
+      let metrics = octx.measureText(label);
+      const targetWidth = offW * 0.92;
+      if (metrics.width > 0) {
+        fontSize = fontSize * (targetWidth / metrics.width);
+      }
+      fontSize = Math.max(28, Math.min(fontSize, 150));
+      octx.font = `700 ${fontSize}px "Space Grotesk", sans-serif`;
+      octx.fillText(label, offW / 2, offH / 2);
+
+      const img = octx.getImageData(0, 0, offW, offH).data;
+      const step = Math.max(3, Math.round(offW / 260));
+      const raw = [];
+      for (let y = 0; y < offH; y += step) {
+        for (let x = 0; x < offW; x += step) {
+          const alpha = img[(y * offW + x) * 4 + 3];
+          if (alpha > 140) raw.push({ x, y });
+        }
+      }
+
+      // Cap particle count for performance; keep even coverage rather than
+      // just truncating the array.
+      const cap = 620;
+      const points = [];
+      const strideN = raw.length > cap ? Math.ceil(raw.length / cap) : 1;
+      for (let i = 0; i < raw.length; i += strideN) points.push(raw[i]);
+
+      // Map offscreen-canvas coordinates into the main hero canvas,
+      // centred horizontally, vertical centre around 42% of the viewport.
+      const originX = w / 2 - offW / 2;
+      const originY = h * 0.42 - offH / 2;
+      return points.map((p) => ({ tx: p.x + originX, ty: p.y + originY }));
+    }
+
+    function buildParticles() {
+      const targets = sampleTextPoints();
+      textParticles = targets.map((t) => ({
+        tx: t.tx,
+        ty: t.ty,
+        sx: Math.random() * w,
+        sy: Math.random() * h,
+        phase: Math.random() * Math.PI * 2,
+        speed: 0.4 + Math.random() * 0.8,
+        size: 1.4 + Math.random() * 1.1,
+      }));
+
+      const ambientCount = Math.round((w * h) / 26000);
+      ambientParticles = Array.from({ length: Math.min(ambientCount, 140) }, () => ({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        phase: Math.random() * Math.PI * 2,
+        speed: 0.3 + Math.random() * 0.6,
+        size: 0.6 + Math.random() * 1,
+      }));
+    }
+
+    function draw(time) {
+      ctx.clearRect(0, 0, w, h);
+      const eased = easeInOutCubic(clamp01(progress));
+      const settle = lerp(16, 1.5, eased); // ambient jitter shrinks as it locks into place
+
+      for (const p of textParticles) {
+        const jx = Math.sin(time * 0.001 * p.speed + p.phase) * settle;
+        const jy = Math.cos(time * 0.0013 * p.speed + p.phase) * settle;
+        const x = lerp(p.sx, p.tx, eased) + jx;
+        const y = lerp(p.sy, p.ty, eased) + jy;
+        const twinkle = 0.55 + 0.45 * Math.sin(time * 0.002 * p.speed + p.phase);
+        const [r, g, b] = eased > 0.75 ? ACCENT_BRIGHT : ACCENT;
+        ctx.globalAlpha = 0.55 + 0.45 * twinkle;
+        ctx.fillStyle = `rgb(${r},${g},${b})`;
+        ctx.beginPath();
+        ctx.arc(x, y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      for (const p of ambientParticles) {
+        const dx = Math.sin(time * 0.0004 * p.speed + p.phase) * 30;
+        const dy = Math.cos(time * 0.0003 * p.speed + p.phase) * 20;
+        const twinkle = 0.4 + 0.3 * Math.sin(time * 0.0015 * p.speed + p.phase);
+        ctx.globalAlpha = twinkle * 0.5;
+        ctx.fillStyle = `rgb(${ACCENT[0]},${ACCENT[1]},${ACCENT[2]})`;
+        ctx.beginPath();
+        ctx.arc(p.x + dx, p.y + dy, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    function tick(time) {
+      if (!running) return;
+      draw(time);
+    }
+
+    function start() {
+      if (running) return;
+      running = true;
+      gsap.ticker.add(tick);
+    }
+    function stop() {
+      running = false;
+      gsap.ticker.remove(tick);
+    }
+
+    setSize();
+    // Sample against a generic sans-serif immediately so there's no blank
+    // frame, then re-sample once Space Grotesk actually finishes loading
+    // (document.fonts.ready) so the wordmark ends up in the real brand
+    // font rather than the browser's fallback.
+    buildParticles();
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => {
+        setSize();
+        buildParticles();
+      });
+    }
+
+    const st = ScrollTrigger.create({
+      trigger: section,
+      start: "top top",
+      end: "bottom bottom",
+      scrub: true,
+      onUpdate: (self) => {
+        progress = self.progress;
+      },
     });
 
-    function render(progress) {
-      const appear = ease(mapRange(progress, 0.05, 0.34));
-      const organize = ease(mapRange(progress, 0.42, 0.8));
-      const lineOpacity = ease(mapRange(progress, 0.5, 0.72));
-      const draw = ease(mapRange(progress, 0.58, 0.9));
-      const statT = ease(mapRange(progress, 0.72, 1));
-      const actionsT = ease(mapRange(progress, 0.8, 1));
-
-      let d = "";
-      points.forEach((p, i) => {
-        const cx = lerp(p.sx, p.ox, organize);
-        const cy = lerp(p.sy, p.oy, organize);
-        const localAppear = clamp01((appear - p.appearAt * 0.4) / (1 - p.appearAt * 0.4));
-        p.el.setAttribute("cx", cx.toFixed(1));
-        p.el.setAttribute("cy", cy.toFixed(1));
-        p.el.setAttribute("r", (1.8 + 1.6 * localAppear).toFixed(2));
-        p.el.setAttribute("opacity", localAppear.toFixed(2));
-        p.el.setAttribute("fill", mixColor(GOLD, GOLD_BRIGHT, organize));
-        d += (i === 0 ? "M " : "L ") + cx.toFixed(1) + "," + cy.toFixed(1) + " ";
-      });
-
-      chartLine.setAttribute("d", d);
-      chartLine.style.opacity = lineOpacity.toFixed(2);
-      if (lineOpacity > 0.01) {
-        const len = chartLine.getTotalLength();
-        chartLine.style.strokeDasharray = len;
-        chartLine.style.strokeDashoffset = (len * (1 - draw)).toFixed(1);
-      }
-
-      if (stats) stats.style.opacity = (0.15 + 0.85 * statT).toFixed(2);
-      if (actions) {
-        actions.style.opacity = actionsT.toFixed(2);
-        actions.style.transform = `translateY(${(1 - actionsT) * 14}px)`;
-      }
-      numEls.forEach((el) => {
-        const target = parseFloat(el.dataset.target);
-        const format = el.dataset.format;
-        el.textContent = formatNum(target, format, statT);
-      });
-      if (progressFill) progressFill.style.width = (progress * 100).toFixed(1) + "%";
-      if (hint) hint.style.opacity = progress > 0.04 ? "0" : "1";
-    }
-
-    // Reduced motion / narrow viewports: compute the fully-resolved frame
-    // once and leave it static, no scroll listener at all.
-    if (reduceMotion) {
-      section.classList.add("sh-nopin");
-      render(1);
-      return;
-    }
-
-    let ticking = false;
-    let active = false;
-
-    function tick() {
-      ticking = false;
-      if (!active) return;
-      if (!isDesktop()) {
-        // Viewport crossed into the mobile breakpoint after load (e.g. a
-        // resize/orientation change) — hand off to the static CSS layout.
-        section.classList.add("sh-nopin");
-        render(1);
-        return;
-      }
-      const rect = section.getBoundingClientRect();
-      const scrollable = rect.height - window.innerHeight;
-      const progress = scrollable > 0 ? clamp01(-rect.top / scrollable) : 1;
-      render(progress);
-      requestAnimationFrame(tick);
-      ticking = true;
-    }
-
-    function requestTick() {
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(tick);
-      }
-    }
-
-    if (!isDesktop()) {
-      section.classList.add("sh-nopin");
-      render(1);
-      return;
-    }
-
-    render(0);
-
     const io = new IntersectionObserver(
-      ([entry]) => {
-        active = entry.isIntersecting;
-        if (active) requestTick();
-      },
+      ([entry]) => (entry.isIntersecting ? start() : stop()),
       { threshold: 0 }
     );
     io.observe(section);
 
-    window.addEventListener("scroll", requestTick, { passive: true });
-    window.addEventListener("resize", requestTick, { passive: true });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) stop();
+      else if (section.getBoundingClientRect().bottom > 0) start();
+    });
+
+    let resizeTimer = 0;
+    window.addEventListener(
+      "resize",
+      () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+          if (!isDesktop()) {
+            stop();
+            return;
+          }
+          setSize();
+          buildParticles();
+          ScrollTrigger.refresh();
+        }, 200);
+      },
+      { passive: true }
+    );
+
+    start();
   });
 })();
