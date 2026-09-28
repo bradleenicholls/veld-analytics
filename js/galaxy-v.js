@@ -145,8 +145,8 @@
         ctx.fillStyle = `rgb(${r},${g},${b})`;
 
         if (p.glow) {
-          ctx.shadowBlur = 16;
-          ctx.shadowColor = `rgba(${r},${g},${b},0.8)`;
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = `rgba(${r},${g},${b},0.6)`;
         } else {
           ctx.shadowBlur = 0;
         }

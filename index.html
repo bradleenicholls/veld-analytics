@@ -45,26 +45,31 @@
   <a href="/contact/">Contact</a>
 </div>
 
-<!-- HERO v2 — split-edge wordmark either side of a centred spiral-galaxy
-     graphic, riffing on a reference hero the client liked. Full rebuild of
-     the homepage hero only; every other page keeps its existing design. -->
+<!-- HERO v3 — asymmetric two-column layout: copy fixed left, spiral-galaxy
+     graphic confined to a defined panel on the right rather than washed full-
+     bleed across the whole viewport. The graphic reads as a data figure with
+     a caption, not a decorative background effect. Full rebuild of the
+     homepage hero only; every other page keeps its existing design. -->
 <header class="hero-v2 scene" id="main">
-  <div id="galaxy-v-bg" class="hero-v2-bg" aria-hidden="true"></div>
+  <div class="hero-v2-grid" aria-hidden="true"></div>
 
-  <div class="hero-v2-edge hero-v2-edge-left">
-    <span class="hero-v2-word reveal visible">Veld</span>
-  </div>
-  <div class="hero-v2-edge hero-v2-edge-right">
-    <span class="hero-v2-word reveal visible">Analytics</span>
-  </div>
+  <div class="container hero-v2-inner">
+    <div class="hero-v2-copy">
+      <div class="eyebrow eyebrow-ice reveal visible">Clarity across Google Analytics 4, Google Ads, SEO &amp; social.</div>
+      <h1 class="reveal visible">Clearer reporting. Trusted dashboards. <em>Better decisions.</em></h1>
+      <p class="lede reveal visible">Veld Analytics builds trusted reporting for Google Analytics 4, Google Ads, SEO, paid social, and organic social, turning scattered platform data into dashboards your team actually uses.</p>
+      <div class="hero-actions reveal visible">
+        <a href="/contact/" class="btn btn-primary">Book a free reporting review <span class="btn-arrow">→</span></a>
+        <a href="/approach/#method" class="btn btn-ghost">Explore the method</a>
+      </div>
+    </div>
 
-  <div class="container hero-v2-copy">
-    <div class="eyebrow eyebrow-ice reveal visible">Clarity across Google Analytics 4, Google Ads, SEO &amp; social.</div>
-    <h1 class="reveal visible">Clearer reporting. Trusted dashboards. <em>Better decisions.</em></h1>
-    <p class="lede reveal visible">Veld Analytics builds trusted reporting for Google Analytics 4, Google Ads, SEO, paid social, and organic social, turning scattered platform data into dashboards your team actually uses.</p>
-    <div class="hero-actions reveal visible">
-      <a href="/contact/" class="btn btn-primary">Book a free reporting review <span class="btn-arrow">→</span></a>
-      <a href="/approach/#method" class="btn btn-ghost">Explore the method</a>
+    <div class="hero-v2-figure reveal visible">
+      <div id="galaxy-v-bg" class="hero-v2-bg" aria-hidden="true"></div>
+      <div class="hero-v2-figcap" aria-hidden="true">
+        <span>GA4 · Google Ads · SEO · Social</span>
+        <span>53.4808°N 2.2426°W — Manchester</span>
+      </div>
     </div>
   </div>
 </header>

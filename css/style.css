@@ -391,6 +391,54 @@ hr.rule {
   padding: 140px 0 80px;
 }
 
+/* Faint 1px coordinate grid across the whole hero — a quiet nod to
+   "technical/data-driven" that reads as instrumentation, not decoration.
+   Masked so it fades out toward the edges instead of tiling flatly. */
+.hero-v2-grid {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.4;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 70% 70% at 68% 50%, black 0%, transparent 78%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 70% at 68% 50%, black 0%, transparent 78%);
+}
+
+/* Asymmetric two-column layout: copy fixed to the left, the galaxy graphic
+   confined to a defined panel on the right instead of washed full-bleed
+   across the viewport. Anti-center-bias — the composition has a clear
+   weight to one side rather than everything stacked dead-centre. */
+.hero-v2-inner {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.86fr);
+  align-items: center;
+  gap: clamp(40px, 6vw, 90px);
+}
+
+.hero-v2-copy { max-width: 560px; }
+.hero-v2-copy h1 { margin-bottom: 22px; letter-spacing: -0.035em; }
+.hero-v2-copy h1 em { font-style: italic; color: var(--gold-bright); }
+.hero-v2-copy .hero-actions { margin-top: 40px; }
+
+/* The figure: a bounded square panel, not the whole viewport. The canvas
+   sizes itself to this container (see js/galaxy-v.js), so confining the box
+   automatically confines the effect — it reads as a diagram, not a wash. */
+.hero-v2-figure {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--bg-soft);
+}
+
 .hero-v2-bg {
   position: absolute;
   inset: 0;
@@ -398,50 +446,36 @@ hr.rule {
   pointer-events: none;
 }
 
-.hero-v2-edge {
+/* Caption strip along the bottom edge of the figure, like a chart label —
+   pure typography, no icon, no badge. */
+.hero-v2-figcap {
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 3;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border-top: 1px solid var(--border);
+  background: linear-gradient(0deg, var(--bg-soft) 0%, transparent 100%);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  color: var(--text-faint);
   pointer-events: none;
 }
-.hero-v2-edge-left { left: 5%; }
-.hero-v2-edge-right { right: 5%; }
-
-.hero-v2-word {
-  font-family: var(--font-display);
-  font-size: clamp(2.6rem, 6vw, 5rem);
-  font-weight: 450;
-  color: var(--text);
-  line-height: 1;
-  letter-spacing: -0.01em;
-}
-
-.hero-v2-copy {
-  position: relative;
-  z-index: 4;
-  max-width: 680px;
-  text-align: center;
-  margin: 0 auto;
-}
-.hero-v2-copy h1 { margin-bottom: 22px; }
-.hero-v2-copy h1 em { font-style: italic; color: var(--gold-bright); }
-.hero-v2-copy .lede { margin: 0 auto; }
-.hero-v2-copy .hero-actions { justify-content: center; margin-top: 40px; }
 
 @media (max-width: 900px) {
-  .hero-v2 {
-    flex-direction: column;
-    padding: 120px 0 70px;
-    gap: 2px;
+  .hero-v2 { padding: 120px 0 60px; }
+  .hero-v2-inner {
+    grid-template-columns: 1fr;
+    gap: 40px;
   }
-  .hero-v2-edge {
-    position: static;
-    transform: none;
-    text-align: center;
-  }
-  .hero-v2-word { font-size: clamp(2.2rem, 12vw, 3rem); }
-  .hero-v2-copy { margin-top: 32px; padding: 0 22px; }
+  .hero-v2-copy { max-width: none; }
+  .hero-v2-figure { aspect-ratio: 4 / 3; }
+  .hero-v2-figcap span:last-child { display: none; }
 }
 
 /* ---------- Cards ---------- */
