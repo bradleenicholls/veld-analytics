@@ -142,18 +142,25 @@
 
     function draw(time) {
       ctx.clearRect(0, 0, w, h);
-      const eased = easeInOutCubic(clamp01(progress));
-      const settle = lerp(16, 1.5, eased); // ambient jitter shrinks as it locks into place
+      // Formation completes within the first 70% of the (now much shorter)
+      // pin range, then holds the formed word for the last 30% before the
+      // pin releases — the wordmark resolves quickly near the top of the
+      // page, not gradually across a long scroll.
+      const eased = easeInOutCubic(clamp01(progress / 0.7));
+      // Jitter never fully stops, even once formed — a small permanent
+      // "breathing" motion so the field always reads as live, not frozen.
+      const settle = lerp(16, 5, eased);
 
       for (const p of textParticles) {
         const jx = Math.sin(time * 0.001 * p.speed + p.phase) * settle;
         const jy = Math.cos(time * 0.0013 * p.speed + p.phase) * settle;
         const x = lerp(p.sx, p.tx, eased) + jx;
         const y = lerp(p.sy, p.ty, eased) + jy;
-        const twinkle = 0.55 + 0.45 * Math.sin(time * 0.002 * p.speed + p.phase);
-        const [r, g, b] = eased > 0.75 ? ACCENT_BRIGHT : ACCENT;
-        ctx.globalAlpha = 0.55 + 0.45 * twinkle;
-        ctx.fillStyle = `rgb(${r},${g},${b})`;
+        const twinkle = 0.7 + 0.3 * Math.sin(time * 0.002 * p.speed + p.phase);
+        // Text particles read as the bright foreground wordmark throughout,
+        // not just once fully formed.
+        ctx.globalAlpha = Math.min(1, 0.85 + 0.15 * twinkle);
+        ctx.fillStyle = `rgb(${ACCENT_BRIGHT[0]},${ACCENT_BRIGHT[1]},${ACCENT_BRIGHT[2]})`;
         ctx.beginPath();
         ctx.arc(x, y, p.size, 0, Math.PI * 2);
         ctx.fill();
@@ -162,8 +169,8 @@
       for (const p of ambientParticles) {
         const dx = Math.sin(time * 0.0004 * p.speed + p.phase) * 30;
         const dy = Math.cos(time * 0.0003 * p.speed + p.phase) * 20;
-        const twinkle = 0.4 + 0.3 * Math.sin(time * 0.0015 * p.speed + p.phase);
-        ctx.globalAlpha = twinkle * 0.5;
+        const twinkle = 0.55 + 0.35 * Math.sin(time * 0.0015 * p.speed + p.phase);
+        ctx.globalAlpha = twinkle * 0.75;
         ctx.fillStyle = `rgb(${ACCENT[0]},${ACCENT[1]},${ACCENT[2]})`;
         ctx.beginPath();
         ctx.arc(p.x + dx, p.y + dy, p.size, 0, Math.PI * 2);

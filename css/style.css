@@ -403,7 +403,10 @@ hr.rule {
    (.sr-only) since the canvas forms the wordmark visually, but stays in
    the accessibility tree for screen readers and SEO. */
 .hero-form {
-  height: 280vh;
+  /* Shorter scroll runway than a typical scrollytelling pin (was 280vh) —
+     the wordmark should finish forming quickly, near the top of the page,
+     not require scrolling halfway down before it resolves. */
+  height: 160vh;
   position: relative;
 }
 
