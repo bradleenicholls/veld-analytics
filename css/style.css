@@ -4,30 +4,38 @@
    ============================================================ */
 
 :root {
-  /* Color: deep, near-black ground with a blue signal palette.
+  /* Color: ground shifted to Cohere DESIGN.md's near-black primary
+     (#17171c) instead of the previous near-black (#0a0b09) — same "deep,
+     premium, technical" dark-first direction, just their exact value.
      Variable names below are historical (--gold/--sage from the original
      brand) but now hold blue values — kept as-is to avoid touching every
      usage site across this file. Role mapping, chosen for contrast:
-       --gold        -> #82a7ff (blue-bright) — readable text/interactive accent (8.4:1 on bg)
-       --gold-bright -> #dff7ff (ice)         — brightest hover/emphasis (17.7:1 on bg)
-       --sage        -> #2457ff (blueberry)   — rich decorative fills/shapes only;
-                         NOT used for text, it only clears 3.65:1 on this dark bg. */
-  --bg: #0a0b09;
-  --bg-soft: #0e100d;
-  --surface: #131510;
-  --surface-elevated: #181b15;
+       --gold        -> #82a7ff (blue-bright) — readable text/interactive accent (7.6:1 on bg)
+       --gold-bright -> #dff7ff (ice)         — brightest hover/emphasis (16.1:1 on bg)
+       --sage        -> #1863dc (Cohere "Action Blue") — rich decorative fills/
+                         shapes only; NOT used for text, it only clears 3.3:1 on this bg.
+       --coral       -> #ff7759 (Cohere "Coral")  — secondary editorial accent for
+                         case-study/gallery captions and highlight moments only,
+                         kept separate from the primary blue signal (6.8:1 on bg,
+                         text-safe). Used sparingly, not a site-wide replacement. */
+  --bg: #17171c;
+  --bg-soft: #1c1c22;
+  --surface: #202028;
+  --surface-elevated: #26262f;
   --border: rgba(243, 241, 233, 0.09);
   --border-strong: rgba(243, 241, 233, 0.16);
 
   --text: #f3f1e9;
   --text-muted: #a7a59a;
-  --text-faint: #857f72; /* WCAG AA: 4.96:1 against --bg */
+  --text-faint: #8b8579; /* WCAG AA: 4.6:1 against --bg */
 
   --gold: #82a7ff;
   --gold-soft: rgba(130, 167, 255, 0.14);
   --gold-bright: #dff7ff;
-  --sage: #2457ff;
-  --sage-soft: rgba(36, 87, 255, 0.14);
+  --sage: #1863dc;
+  --sage-soft: rgba(24, 99, 220, 0.14);
+  --coral: #ff7759;
+  --coral-soft: rgba(255, 119, 89, 0.14);
 
   --radius-sm: 6px;
   --radius-md: 14px;
@@ -145,10 +153,15 @@ p { color: var(--text-muted); }
   text-wrap: pretty;
 }
 
+/* Caption/eyebrow tuned closer to Cursor DESIGN.md's caption-uppercase
+   spec (11px/600/1.4/0.88px tracking) — was font-weight 400 (inherited)
+   at a much wider 0.22em tracking; tightened and weighted for that
+   quieter, more precise label read. */
 .eyebrow {
   font-family: var(--font-mono);
   font-size: 0.72rem;
-  letter-spacing: 0.22em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--gold);
   display: inline-flex;
@@ -396,31 +409,96 @@ hr.rule {
 .hero-meta strong { display: block; color: var(--text); font-family: var(--font-body); font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
 
 /* ---------- Hero (homepage) ----------
-   Blank except one live component, per client direction — no background
-   effects, no headline copy, no CTA of its own. The working sample
-   dashboard (js/demo-dashboard.js, shared with /work/) is the entire hero.
-   The real page <h1> stays in the DOM for SEO/screen readers via
-   .sr-only, visually replaced by the dashboard. */
-.hero-blank {
+   No background effects. Split layout: copy on the left, a compact
+   instance of the working sample dashboard (js/demo-dashboard.js, shared
+   with /work/) on the right as visual proof. */
+.hero-split {
   position: relative;
   z-index: 1;
-  padding: 150px 0 90px;
+  padding: 160px 0 100px;
+}
+.hero-split-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 64px;
+  align-items: center;
+}
+.hero-split-copy h1 { margin-top: 4px; }
+.hero-split-copy .hero-actions {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-top: 32px;
 }
 
 /* Hairline-only depth for the hero's dashboard instance specifically
    (Cursor DESIGN.md: "no drop shadows — hairline depth carries the
    layering"), toned down from the heavier glow used on /work/ where the
-   dashboard is a supporting section rather than the entire hero. */
-.hero-blank .demo-dashboard {
+   dashboard is a supporting section rather than the entire hero. Scaled
+   down slightly via font-size so every internal rem/em-based dimension
+   in the dashboard shrinks with it, rather than fighting each rule. */
+.hero-split-demo .demo-dashboard {
   box-shadow: none;
   border: 1px solid var(--border-strong);
+  font-size: 0.86rem;
 }
-.hero-blank .demo-dashboard::before {
+.hero-split-demo .demo-dashboard::before {
   opacity: 0.5;
 }
 
+@media (max-width: 1100px) {
+  .hero-split-grid { grid-template-columns: 1fr; gap: 48px; }
+  .hero-split-demo { order: 2; }
+  .hero-split-copy { order: 1; }
+}
+
 @media (max-width: 900px) {
-  .hero-blank { padding: 120px 0 60px; }
+  .hero-split { padding: 120px 0 60px; }
+}
+
+/* ---------- Homepage section-preview cards ----------
+   Small teaser per interior page (Services/Work/Approach/About), each a
+   single clickable card to that page — reinforces the nav's role of
+   taking visitors straight to a section while keeping the homepage a
+   single scrollable page in its own right. */
+.home-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.home-preview-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  padding: 36px 30px;
+  transition: background 0.35s var(--ease), transform 0.35s var(--ease);
+}
+.home-preview-card:hover {
+  background: var(--surface-elevated);
+  transform: translateY(-3px);
+}
+.home-preview-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--coral);
+  margin-bottom: 14px;
+}
+.home-preview-card h3 { font-size: 1.15rem; margin-bottom: 10px; }
+.home-preview-card p { font-size: 0.88rem; line-height: 1.55; flex-grow: 1; }
+.home-preview-card .card-cta { margin-top: 20px; }
+
+@media (max-width: 900px) {
+  .home-preview-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 560px) {
+  .home-preview-grid { grid-template-columns: 1fr; }
 }
 
 /* ---------- Cards ---------- */
@@ -1458,4 +1536,153 @@ body { perspective: none; }
   .demo-pie-wrap svg circle, .demo-stackbar-wrap rect {
     transition: none !important;
   }
+}
+
+/* ============================================================
+   ACCORDION GALLERY (Work page case studies)
+   Vanilla-JS/GSAP port of React Bits' AccordionGallery — see
+   js/accordion-gallery.js. Colour custom properties tied to the site's
+   own tokens rather than the component's original white-on-black
+   defaults: coral accent (Cohere DESIGN.md's secondary editorial colour)
+   for the caption bar, since this gallery is read as case-study/editorial
+   content rather than product UI.
+   ============================================================ */
+.accordion-gallery {
+  --ag-accent: var(--coral);
+  --ag-overlay: var(--bg);
+  --ag-text: var(--text);
+  --ag-gap: 10px;
+  --ag-radius: var(--radius-md);
+  --ag-media-size: 320px;
+
+  display: flex;
+  flex-direction: row;
+  gap: var(--ag-gap);
+  width: 100%;
+  max-width: 100%;
+  height: 460px; /* JS fallback default — overridden inline once accordion-gallery.js runs */
+  perspective: 1400px;
+  perspective-origin: 50% 50%;
+}
+
+.accordion-gallery--vertical { flex-direction: column; }
+
+.ag-panel {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: var(--ag-radius);
+  cursor: pointer;
+  display: block;
+  text-decoration: none;
+  outline: none;
+  transform-style: preserve-3d;
+  transform-origin: center center;
+  background: var(--surface);
+  box-shadow: 0 10px 30px -18px rgba(0, 0, 0, 0.8);
+  will-change: flex-grow, transform;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ag-panel:focus-visible {
+  box-shadow: 0 0 0 2px var(--ag-accent), 0 10px 30px -18px rgba(0, 0, 0, 0.8);
+}
+
+.ag-panel__frame {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.ag-panel__media {
+  --ag-gray: 1;
+  --ag-dim: 0.35;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--ag-media-size);
+  height: 100%;
+  filter: grayscale(var(--ag-gray));
+  will-change: transform, filter;
+}
+
+.accordion-gallery--vertical .ag-panel__media {
+  width: 100%;
+  height: var(--ag-media-size);
+}
+
+.ag-panel__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.ag-panel__overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, transparent 45%, color-mix(in srgb, var(--ag-overlay) 78%, transparent) 100%),
+    color-mix(in srgb, var(--ag-overlay) calc(var(--ag-dim, 0.35) * 100%), transparent);
+}
+
+.ag-panel__label {
+  position: absolute;
+  left: 20px;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.ag-panel__bar {
+  flex: 0 0 auto;
+  width: 3px;
+  height: 26px;
+  border-radius: 3px;
+  background: var(--ag-accent);
+  opacity: 0;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--ag-accent) 60%, transparent);
+}
+
+.ag-panel__text {
+  color: var(--ag-text);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: clamp(1rem, 1.4vw, 1.4rem);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);
+}
+
+@media (max-width: 700px) {
+  .accordion-gallery {
+    flex-direction: column;
+    perspective: none;
+    height: auto !important;
+  }
+  .ag-panel {
+    min-height: 84px;
+    transform: none !important;
+  }
+  .accordion-gallery .ag-panel__media {
+    width: 100%;
+    height: var(--ag-media-size);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ag-panel, .ag-panel__media { will-change: auto; }
 }
