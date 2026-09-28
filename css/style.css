@@ -669,6 +669,15 @@ footer {
   padding: 180px 0 90px;
   border-bottom: 1px solid var(--border);
 }
+/* Guarantees the headline/copy paint above the absolutely-positioned,
+   z-index:0 Galaxy canvas (.topo-bg) that now sits behind every page-hero —
+   a static, non-positioned .container would otherwise risk stacking under
+   a positioned z-index:0 sibling per CSS painting order. Mirrors the same
+   fix already used for .scene > .container. */
+.page-hero > .container {
+  position: relative;
+  z-index: 2;
+}
 .page-hero h1 { max-width: 760px; }
 .page-hero-compact { padding-bottom: 70px; border-bottom: none; }
 #demo { padding-top: 40px; }
@@ -924,14 +933,6 @@ body { perspective: none; }
    the same ice tone as the homepage's Galaxy background, so the interior
    pages feel like part of the same family without any WebGL, JS, or
    animation at all — completely static. */
-.star-bg {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-
 /* ---------- 3D tilt-in reveal (for cards) ---------- */
 .tilt-in {
   opacity: 0;
@@ -1053,15 +1054,18 @@ body { perspective: none; }
   .ambient-bg::after { opacity: 0.3; }
 }
 
-/* ---------- WebGL hero canvas container (homepage only) ----------
-   The interior pages moved to a static SVG (.star-bg above) — this
-   one remains for the homepage's Galaxy starfield. */
+/* ---------- Galaxy WebGL background (all hero sections) ----------
+   Mount point for js/galaxy-bg.js — one live instance per hero (the
+   homepage hero-form-pin, and every interior page's .page-hero). Auto
+   pointer-events so the shader's mouse-repulsion works over empty
+   background space; any real UI (nav, headline, buttons) sits at a higher
+   z-index and still receives clicks first regardless. */
 .topo-bg {
   position: absolute;
   inset: 0;
   z-index: 0;
   overflow: hidden;
-  pointer-events: none;
+  pointer-events: auto;
   background: transparent;
 }
 .topo-bg canvas {

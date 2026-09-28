@@ -1,10 +1,12 @@
 // Veld Analytics — homepage hero
-// One live component, nothing else in the hero. A field of particles drifts
-// continuously (the "live moving background"), always visible from load.
-// As the visitor scrolls down through the pinned hero, those particles
-// converge into the "VELD ANALYTICS" wordmark; once formed, the tagline and
-// CTA (already present in the DOM as a static fallback) get their entrance
-// treatment and the pin releases into the rest of the page.
+// The "VELD ANALYTICS" wordmark is already fully formed from particles the
+// moment the page loads — visible before any scrolling happens, per client
+// direction. A Galaxy WebGL starfield (js/galaxy-bg.js) drifts continuously
+// behind this canvas as the "live moving background". As the visitor
+// scrolls down through the pinned hero, the formed wordmark dissolves back
+// apart, handing off to the Galaxy field behind it, and the pin releases
+// into the rest of the page. The tagline/CTA below the wordmark are static
+// DOM content, visible from load independent of this script.
 //
 // Scroll progress comes from GSAP ScrollTrigger's onUpdate (GSAP's own
 // internal, batched scroll observer) — never a hand-rolled
@@ -27,10 +29,9 @@
     return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   }
 
-  // Brand accent, mirrors --gold / --gold-bright / --text-faint from
-  // css/style.css. Hardcoded because particle fills are computed per-frame
-  // as plain rgba, not swapped as discrete CSS values.
-  const ACCENT = [130, 167, 255]; // --gold
+  // Brand accent, mirrors --gold-bright from css/style.css. Hardcoded
+  // because particle fills are computed per-frame as plain rgba, not
+  // swapped as discrete CSS values.
   const ACCENT_BRIGHT = [223, 247, 255]; // --gold-bright
 
   document.addEventListener("DOMContentLoaded", () => {
@@ -53,7 +54,6 @@
     const ctx = canvas.getContext("2d");
     let w = 0, h = 0, dpr = 1;
     let textParticles = [];
-    let ambientParticles = [];
     let progress = 0;
     let running = false;
 
@@ -123,57 +123,44 @@
       textParticles = targets.map((t) => ({
         tx: t.tx,
         ty: t.ty,
-        sx: Math.random() * w,
-        sy: Math.random() * h,
+        // Dissolve destination: pushed further outward from each letter's
+        // formed position (not just a random point) so the breakup reads as
+        // an outward scatter into the Galaxy field behind it, rather than a
+        // random reshuffle.
+        sx: t.tx + (Math.random() - 0.5) * w * 0.9,
+        sy: t.ty + (Math.random() - 0.5) * h * 0.7,
         phase: Math.random() * Math.PI * 2,
         speed: 0.4 + Math.random() * 0.8,
         size: 1.4 + Math.random() * 1.1,
-      }));
-
-      const ambientCount = Math.round((w * h) / 26000);
-      ambientParticles = Array.from({ length: Math.min(ambientCount, 140) }, () => ({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        phase: Math.random() * Math.PI * 2,
-        speed: 0.3 + Math.random() * 0.6,
-        size: 0.6 + Math.random() * 1,
       }));
     }
 
     function draw(time) {
       ctx.clearRect(0, 0, w, h);
-      // Formation completes within the first 70% of the (now much shorter)
-      // pin range, then holds the formed word for the last 30% before the
-      // pin releases — the wordmark resolves quickly near the top of the
-      // page, not gradually across a long scroll.
-      const eased = easeInOutCubic(clamp01(progress / 0.7));
-      // Jitter never fully stops, even once formed — a small permanent
-      // "breathing" motion so the field always reads as live, not frozen.
-      const settle = lerp(16, 5, eased);
+      // Inverted from a "scroll to reveal" pattern: the word is fully
+      // formed at rest (progress 0, i.e. before any scrolling), visible the
+      // instant the page loads. Scrolling through the pin then dissolves it
+      // back apart, handing off to the Galaxy starfield running behind this
+      // canvas — "you scroll and something happens" without ever hiding the
+      // name up front.
+      const dissolve = easeInOutCubic(clamp01(progress));
+      // Calm, minimal jitter while the word reads clearly; ramps up as it
+      // comes apart on scroll.
+      const settle = lerp(4, 18, dissolve);
 
       for (const p of textParticles) {
         const jx = Math.sin(time * 0.001 * p.speed + p.phase) * settle;
         const jy = Math.cos(time * 0.0013 * p.speed + p.phase) * settle;
-        const x = lerp(p.sx, p.tx, eased) + jx;
-        const y = lerp(p.sy, p.ty, eased) + jy;
+        const x = lerp(p.tx, p.sx, dissolve) + jx;
+        const y = lerp(p.ty, p.sy, dissolve) + jy;
         const twinkle = 0.7 + 0.3 * Math.sin(time * 0.002 * p.speed + p.phase);
-        // Text particles read as the bright foreground wordmark throughout,
-        // not just once fully formed.
-        ctx.globalAlpha = Math.min(1, 0.85 + 0.15 * twinkle);
+        // Fades out as it dissolves rather than staying bright once
+        // scattered, so it reads as handing off to the Galaxy field behind
+        // it, not just relocating.
+        ctx.globalAlpha = Math.max(0, (0.85 + 0.15 * twinkle) * (1 - dissolve * 0.9));
         ctx.fillStyle = `rgb(${ACCENT_BRIGHT[0]},${ACCENT_BRIGHT[1]},${ACCENT_BRIGHT[2]})`;
         ctx.beginPath();
         ctx.arc(x, y, p.size, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      for (const p of ambientParticles) {
-        const dx = Math.sin(time * 0.0004 * p.speed + p.phase) * 30;
-        const dy = Math.cos(time * 0.0003 * p.speed + p.phase) * 20;
-        const twinkle = 0.55 + 0.35 * Math.sin(time * 0.0015 * p.speed + p.phase);
-        ctx.globalAlpha = twinkle * 0.75;
-        ctx.fillStyle = `rgb(${ACCENT[0]},${ACCENT[1]},${ACCENT[2]})`;
-        ctx.beginPath();
-        ctx.arc(p.x + dx, p.y + dy, p.size, 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.globalAlpha = 1;
