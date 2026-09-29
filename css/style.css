@@ -465,16 +465,15 @@ hr.rule {
 }
 
 .hero-stack .container {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  /* .hero-stack is itself a row flex container (for vertical centring of
-     the whole hero). Without an explicit width, this child shrinks to
-     fit its content instead of filling the row — invisible on desktop
-     where content is narrower than the viewport, but on mobile the
-     copy's own max-width (700px) is wider than the screen, so the row
-     centred an oversized box and clipped it via overflow:hidden, cutting
-     text off both edges. Force it to take the full row width instead. */
+  /* Plain block stacking, not flex — flex here (column, align-items:
+     flex-start) caused its children to shrink-wrap to their own content
+     width (up to hero-stack-copy's max-width:700px) instead of filling
+     this container, which itself is the correct 100%-of-viewport width
+     (see the .hero-stack fix below). Same bug, one level deeper: on
+     mobile the 700px copy block rendered at 700px instead of wrapping
+     to the ~330px actually available, spilling off the right edge.
+     Normal block flow doesn't have this shrink-wrap trap — each child
+     just fills the available width up to its own max-width. */
   width: 100%;
 }
 
