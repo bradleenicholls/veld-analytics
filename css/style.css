@@ -563,6 +563,7 @@ hr.rule {
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
   gap: 10px;
   margin-top: 72px;
   font-family: var(--font-mono);
@@ -1155,6 +1156,26 @@ body { perspective: none; }
   top: 150px;
   align-self: start;
   height: fit-content;
+}
+.pin-visual-frame {
+  height: 440px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+/* The Approach page's method visual: two-column on desktop, the visual
+   sticks in place at top:150px while the taller text column scrolls
+   past it beside it — that's the point of position:sticky here. Below
+   900px .grid-2 collapses to a single column, so the visual and the
+   five text steps stack instead of sitting side by side. Sticky in a
+   single column has nothing to stay level with, so it pins over the
+   step text as the page scrolls, covering it. Turn sticky off and
+   shrink the box so it reads as a static banner image instead. */
+@media (max-width: 900px) {
+  .pin-visual { position: static; top: auto; }
+  .pin-visual-frame { height: 260px; }
 }
 
 /* ---------- Route progress rail (fixed, right edge) ---------- */
@@ -1795,6 +1816,15 @@ body { perspective: none; }
   height: 100%;
   filter: grayscale(var(--ag-gray));
   will-change: transform, filter;
+  /* The source screenshots span portrait to very wide landscape, so a
+     fixed-box object-fit:cover was cropping most of the dashboard out of
+     view. Contain-fit inside a centred, padded frame instead — nothing
+     gets cut off, whatever the screenshot's own aspect ratio. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: var(--surface);
 }
 
 .accordion-gallery--vertical .ag-panel__media {
@@ -1803,10 +1833,14 @@ body { perspective: none; }
 }
 
 .ag-panel__media img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
   display: block;
+  border-radius: 4px;
+  box-shadow: 0 10px 26px -14px rgba(0, 0, 0, 0.7);
   user-select: none;
   -webkit-user-drag: none;
 }
