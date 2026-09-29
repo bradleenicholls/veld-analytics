@@ -416,7 +416,16 @@ hr.rule {
 .hero-stack {
   position: relative;
   z-index: 1;
-  padding: 160px 0 100px;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 120px 0 90px;
+}
+.hero-stack .container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .hero-stack-copy {
   text-align: center;
@@ -431,27 +440,80 @@ hr.rule {
   margin-top: 32px;
 }
 
-/* Dashboard sits well clear of the copy above it, and spans the full
-   container width rather than being squeezed into a column. */
-.hero-stack .demo-dashboard {
-  margin-top: 64px;
+/* Scroll cue — the only hint below the fold that there's a dashboard to
+   find. Small, quiet, in the Cursor "never bold" register. */
+.hero-scroll-cue {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 72px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  transition: color 0.25s var(--ease);
+}
+.hero-scroll-cue:hover { color: var(--text-muted); }
+.hero-scroll-cue-line {
+  width: 1px;
+  height: 34px;
+  background: var(--border-strong);
+  position: relative;
+  overflow: hidden;
+}
+.hero-scroll-cue-line::after {
+  content: "";
+  position: absolute;
+  top: -100%;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--gold);
+  animation: hero-scroll-cue-drip 1.8s ease-in-out infinite;
+}
+@keyframes hero-scroll-cue-drip {
+  0% { top: -100%; }
+  60%, 100% { top: 100%; }
 }
 
-/* Hairline-only depth for the hero's dashboard instance specifically
-   (Cursor DESIGN.md: "no drop shadows — hairline depth carries the
-   layering"), toned down from the heavier glow used on /work/ where the
-   dashboard is a supporting section rather than the entire hero. */
-.hero-stack .demo-dashboard {
+/* ---------- Dashboard showcase (below the hero fold) ----------
+   The live sample dashboard now lives in its own section with a heading
+   and a couple of lines on what the reports actually cover, rather than
+   sitting wordlessly inside the hero. */
+.dashboard-showcase {
+  position: relative;
+  z-index: 1;
+  padding: 20px 0 100px;
+}
+.dashboard-showcase-head {
+  text-align: center;
+  max-width: 620px;
+  margin: 0 auto 44px;
+}
+.dashboard-showcase-head h2 { margin-top: 10px; }
+.dashboard-showcase-head .lede { margin-top: 16px; }
+.dashboard-showcase-foot {
+  text-align: center;
+  margin-top: 28px;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+.dashboard-showcase-foot .card-cta { margin-top: 0; margin-left: 4px; }
+
+.dashboard-showcase .demo-dashboard {
   box-shadow: none;
   border: 1px solid var(--border-strong);
 }
-.hero-stack .demo-dashboard::before {
+.dashboard-showcase .demo-dashboard::before {
   opacity: 0.5;
 }
 
 @media (max-width: 900px) {
-  .hero-stack { padding: 120px 0 60px; }
-  .hero-stack .demo-dashboard { margin-top: 44px; }
+  .hero-stack { padding: 100px 0 60px; }
+  .hero-scroll-cue { margin-top: 48px; }
+  .dashboard-showcase { padding: 10px 0 70px; }
 }
 
 /* ---------- Homepage section-preview cards ----------

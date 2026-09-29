@@ -45,21 +45,35 @@
   <a href="/contact/">Contact</a>
 </div>
 
-<!-- HERO v8 — the split (side-by-side) layout was clipping the dashboard
-     at narrower desktop widths, so back to stacked: short copy centred on
-     top, then the working sample dashboard (js/demo-dashboard.js, shared
-     with /work/) full-width beneath it, room to breathe. No background
-     effects. Homepage only. -->
+<!-- HERO v9 — full-viewport landing: just the headline, lede and CTAs,
+     centred in the first screen with a scroll cue. The working sample
+     dashboard (js/demo-dashboard.js, shared with /work/) now lives in its
+     own showcase section below, with its own heading and intro copy, so
+     visitors land on the message first and scroll to find the proof. No
+     background effects. Homepage only. -->
 <header class="hero-stack" id="main">
   <div class="container">
     <div class="hero-stack-copy">
-      <div class="eyebrow" style="justify-content:center;">Clarity across the data landscape</div>
       <h1 class="reveal visible">Reporting you can actually trust.</h1>
       <p class="lede reveal visible">GA4, Google Ads, SEO and social — in one dashboard your team will actually open.</p>
       <div class="hero-actions">
         <a href="/contact/" class="btn btn-primary">Book a free reporting review <span class="btn-arrow">→</span></a>
         <a href="/approach/#method" class="btn btn-ghost">Explore the method</a>
       </div>
+    </div>
+    <a href="#dashboard-showcase" class="hero-scroll-cue" aria-label="Scroll to see a sample dashboard">
+      <span>See it in action</span>
+      <span class="hero-scroll-cue-line" aria-hidden="true"></span>
+    </a>
+  </div>
+</header>
+
+<section class="dashboard-showcase" id="dashboard-showcase">
+  <div class="container">
+    <div class="dashboard-showcase-head">
+      <div class="eyebrow" style="justify-content:center;">Sample dashboard</div>
+      <h2 class="reveal">A live look at what your team would actually open.</h2>
+      <p class="lede reveal">This is a working demo built on sample data — the same kind of dashboard we build from your Google Analytics 4, Google Ads, SEO and social accounts. Switch channel, change the date range, filter by platform.</p>
     </div>
     <div class="demo-dashboard demo-dashboard-lg reveal visible">
       <div class="demo-toolbar">
@@ -182,8 +196,9 @@
         </div>
       </div>
     </div>
+    <p class="dashboard-showcase-foot">Built from GA4, Google Ads, SEO and social — see the full breakdown of what each report covers on <a href="/services/" class="card-cta">Services <span class="btn-arrow">→</span></a></p>
   </div>
-</header>
+</section>
 
 <section class="tight">
   <div class="container">
