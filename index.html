@@ -45,23 +45,30 @@
   <a href="/contact/">Contact</a>
 </div>
 
-<!-- HERO v9 — full-viewport landing: just the headline, lede and CTAs,
-     centred in the first screen with a scroll cue. The working sample
-     dashboard (js/demo-dashboard.js, shared with /work/) now lives in its
-     own showcase section below, with its own heading and intro copy, so
-     visitors land on the message first and scroll to find the proof. No
-     background effects. Homepage only. -->
+<!-- HERO v10 — full-viewport landing, left-set editorial block instead of
+     dead-centred text, a two-tone headline, a channel-coverage strip
+     standing in for a trust row (real channels, not invented stats), a
+     soft ambient glow behind the copy, and an on-load stagger (hero-in-*
+     delays) instead of the static reveal. Dashboard lives below the fold
+     in its own showcase section. Homepage only. -->
 <header class="hero-stack" id="main">
   <div class="container">
     <div class="hero-stack-copy">
-      <h1 class="reveal visible">Reporting you can actually trust.</h1>
-      <p class="lede reveal visible">GA4, Google Ads, SEO and social, all in one dashboard your team will actually open.</p>
-      <div class="hero-actions">
+      <h1 class="hero-in" style="--d:0ms;">Reporting you can <span class="hero-accent">actually trust</span>.</h1>
+      <p class="lede hero-in" style="--d:110ms;">GA4, Google Ads, SEO and social, all in one dashboard your team will actually open.</p>
+      <div class="hero-channels hero-in" style="--d:200ms;">
+        <span class="tag">GA4</span>
+        <span class="tag">Google Ads</span>
+        <span class="tag">SEO</span>
+        <span class="tag">Paid social</span>
+        <span class="tag">Organic social</span>
+      </div>
+      <div class="hero-actions hero-in" style="--d:280ms;">
         <a href="/contact/" class="btn btn-primary">Book a free reporting review <span class="btn-arrow">→</span></a>
         <a href="/approach/#method" class="btn btn-ghost">Explore the method</a>
       </div>
     </div>
-    <a href="#dashboard-showcase" class="hero-scroll-cue" aria-label="Scroll to see a sample dashboard">
+    <a href="#dashboard-showcase" class="hero-scroll-cue hero-in" style="--d:420ms;" aria-label="Scroll to see a sample dashboard">
       <span>See it in action</span>
       <span class="hero-scroll-cue-line" aria-hidden="true"></span>
     </a>

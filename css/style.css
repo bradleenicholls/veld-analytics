@@ -421,23 +421,92 @@ hr.rule {
   align-items: center;
   justify-content: center;
   padding: 120px 0 90px;
+  overflow: hidden;
 }
+
+/* Soft ambient glow behind the copy — the hero has no background effects
+   elsewhere on the page, so this is the only thing keeping the first
+   screen from reading as flat, empty colour. Purely decorative. */
+.hero-stack::before {
+  content: "";
+  position: absolute;
+  top: 8%;
+  left: 6%;
+  width: 620px;
+  height: 620px;
+  max-width: 90vw;
+  background: radial-gradient(circle, var(--gold-soft) 0%, transparent 68%);
+  filter: blur(10px);
+  pointer-events: none;
+  z-index: -1;
+}
+.hero-stack::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(var(--border) 1px, transparent 1px);
+  background-size: 34px 34px;
+  mask-image: radial-gradient(ellipse 60% 55% at 30% 40%, #000 0%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 60% 55% at 30% 40%, #000 0%, transparent 75%);
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: -1;
+}
+
 .hero-stack .container {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
 }
+
+/* Left-set editorial block rather than dead-centred text — still sits
+   inside the standard container, just no longer forced to the middle. */
 .hero-stack-copy {
-  text-align: center;
-  max-width: 640px;
-  margin: 0 auto;
+  text-align: left;
+  max-width: 700px;
+}
+.hero-stack-copy h1 {
+  font-size: clamp(3rem, 6.4vw, 5.4rem);
+}
+.hero-accent {
+  color: var(--gold-bright);
+}
+.hero-stack-copy .lede {
+  max-width: 52ch;
 }
 .hero-stack-copy .hero-actions {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 18px;
   flex-wrap: wrap;
   margin-top: 32px;
+}
+
+/* Channel-coverage strip standing in for a "trust row" — real channels
+   covered, not invented client/stat numbers. Reuses the existing .tag
+   pill from the card-tags pattern so it doesn't introduce a new style. */
+.hero-channels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 26px;
+}
+
+/* On-load stagger. Deliberately separate from the scroll-triggered
+   .reveal/IO system (hero content is above the fold at first paint, so
+   there's nothing to scroll-trigger) — each element carries its own
+   --d delay and animates once on page load. */
+.hero-in {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: hero-in 0.8s var(--ease) both;
+  animation-delay: var(--d, 0ms);
+}
+@keyframes hero-in {
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-in { animation: none; opacity: 1; transform: none; }
 }
 
 /* Scroll cue — the only hint below the fold that there's a dashboard to
@@ -445,7 +514,7 @@ hr.rule {
 .hero-scroll-cue {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
   margin-top: 72px;
   font-family: var(--font-mono);
