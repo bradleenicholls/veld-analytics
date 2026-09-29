@@ -260,7 +260,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (response.ok) {
           form.reset();
           if (note) {
-            note.textContent = "Thanks — your enquiry is on its way. We'll reply within one business day.";
+            note.textContent = "Thanks, your enquiry is on its way. We'll reply within one business day.";
             note.style.color = "var(--gold-bright)";
           }
         } else {
@@ -268,7 +268,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       } catch (err) {
         if (note) {
-          note.textContent = "Something went wrong sending that — please email hello@veldanalytics.com directly.";
+          note.textContent = "Something went wrong sending that. Please email hello@veldanalytics.com directly.";
           note.style.color = "#e08a6c";
         }
       } finally {

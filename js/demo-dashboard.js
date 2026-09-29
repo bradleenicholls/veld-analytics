@@ -953,7 +953,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (toolbarLabel) {
       toolbarLabel.textContent = isFullType
         ? DATA_BY_TYPE[currentType].toolbarLabel
-        : "Social overview" + (currentPlatform !== "all" ? ` — ${SOCIAL_PLATFORMS[currentPlatform].label}` : "");
+        : "Social overview" + (currentPlatform !== "all" ? `: ${SOCIAL_PLATFORMS[currentPlatform].label}` : "");
     }
     if (chartLabel) chartLabel.textContent = chartLbl;
     if (breakdownLabel) breakdownLabel.textContent = breakdownLbl;
