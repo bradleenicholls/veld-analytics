@@ -15,8 +15,17 @@
 document.addEventListener("DOMContentLoaded", () => {
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const hasGsap = typeof window.gsap !== "undefined";
+  // Below this width the gallery isn't a hover-driven accordion at all —
+  // CSS switches it to a plain horizontally-scrollable row of full-size
+  // cards (see .accordion-gallery media query), since there's no hover
+  // on touch and seven slivers squeezed onto a phone screen aren't
+  // readable. Skip the JS entirely so it doesn't fight that layout with
+  // inline flex-grow/transform styles.
+  const isCompact = () => window.matchMedia("(max-width: 700px)").matches;
 
   document.querySelectorAll(".accordion-gallery").forEach((root) => {
+    if (isCompact()) return;
+
     const panels = Array.from(root.querySelectorAll(".ag-panel"));
     if (!panels.length) return;
 

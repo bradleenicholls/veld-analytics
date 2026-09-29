@@ -468,6 +468,14 @@ hr.rule {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  /* .hero-stack is itself a row flex container (for vertical centring of
+     the whole hero). Without an explicit width, this child shrinks to
+     fit its content instead of filling the row — invisible on desktop
+     where content is narrower than the viewport, but on mobile the
+     copy's own max-width (700px) is wider than the screen, so the row
+     centred an oversized box and clipped it via overflow:hidden, cutting
+     text off both edges. Force it to take the full row width instead. */
+  width: 100%;
 }
 
 /* Left-set editorial block rather than dead-centred text — still sits
@@ -538,6 +546,29 @@ hr.rule {
 }
 @media (prefers-reduced-motion: reduce) {
   .hero-channels-track { animation: none; }
+}
+
+/* Auto-scrolling marquee reads fine on desktop where you're just
+   glancing at it, but on a phone it fights your thumb — the strip keeps
+   sliding under you mid-swipe. Below 640px, drop the animation and the
+   duplicated loop-set (only needed for the seamless auto-scroll) and
+   let it be a normal horizontally-scrollable row instead: swipe or
+   click-drag across it, nothing moves on its own. */
+@media (max-width: 640px) {
+  .hero-channels {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    -webkit-mask-image: none;
+    mask-image: none;
+    padding-bottom: 6px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .hero-channels::-webkit-scrollbar { display: none; }
+  .hero-channels-track { animation: none; width: auto; }
+  .hero-channels-group:nth-of-type(2) { display: none; }
+  .hero-channels .tag { scroll-snap-align: start; }
 }
 
 /* On-load stagger. Deliberately separate from the scroll-triggered
@@ -1889,20 +1920,52 @@ body { perspective: none; }
   text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);
 }
 
+/* Below 700px the hover-accordion doesn't work (no hover on touch) and
+   seven slivers squeezed into a phone width aren't readable, so this
+   isn't a smaller version of the desktop effect — it's a different,
+   simpler pattern: one full-size card at a time, swipe or drag to move
+   between them. js/accordion-gallery.js skips this gallery entirely
+   under 700px, so nothing here fights inline JS/GSAP styles — the
+   !important flags are just a safety net in case a resize crosses the
+   breakpoint after the JS already ran at a wider size. */
 @media (max-width: 700px) {
   .accordion-gallery {
-    flex-direction: column;
+    height: 340px !important;
     perspective: none;
-    height: auto !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    gap: 12px;
+    padding-bottom: 8px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
+  .accordion-gallery::-webkit-scrollbar { display: none; }
   .ag-panel {
-    min-height: 84px;
+    flex: 0 0 82% !important;
+    scroll-snap-align: start;
     transform: none !important;
   }
-  .accordion-gallery .ag-panel__media {
-    width: 100%;
-    height: var(--ag-media-size);
+  /* JS (which normally centres this via a translate(-50%,-50%) transform
+     driven by measure()) is skipped entirely below 700px, so position it
+     with plain CSS instead: fill the panel rather than sit centred at a
+     JS-computed size. */
+  .ag-panel__media {
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+    transform: none !important;
+    filter: none !important;
   }
+  /* No hover/active state on touch, so every card shows its label and
+     full colour all the time rather than only the "active" one. */
+  .ag-panel__bar, .ag-panel__text {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .ag-panel__overlay { --ag-dim: 0.35; }
 }
 
 @media (prefers-reduced-motion: reduce) {
