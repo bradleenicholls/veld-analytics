@@ -92,7 +92,8 @@
   // Wrapped in a "rig" purely so the whole assembly can be scaled down
   // 20% in one place without re-deriving every position number. ----
   const rig = new THREE.Group();
-  rig.scale.setScalar(0.5184); // another 10% down from 0.576
+  rig.scale.setScalar(0.49248); // another 5% down from 0.5184
+  rig.position.y = 0.16; // nudged up slightly in the frame
   scene.add(rig);
 
   const group = new THREE.Group();
