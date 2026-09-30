@@ -71,8 +71,16 @@
   scene.add(fillBlue);
 
   // ---- Cubelets: 3x3x3 grid, gapped and lightly jittered per-cube so it
-  // reads as fragmented/exploded rather than a solid block. ----
+  // reads as fragmented/exploded rather than a solid block. Wrapped in a
+  // "rig" purely so the whole assembly can be scaled down 20% in one
+  // place without re-deriving every position/gap/jitter number. ----
+  const rig = new THREE.Group();
+  rig.scale.setScalar(0.8);
+  scene.add(rig);
+
   const group = new THREE.Group();
+  rig.add(group);
+
   const CUBE_SIZE = 0.86;
   const SPACING = 1.04;
   const geometry = new THREE.BoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE);
@@ -101,11 +109,15 @@
         mesh.position.set(x * SPACING + jitter, y * SPACING + jitter, z * SPACING + jitter);
         mesh.castShadow = true;
         mesh.receiveShadow = true;
+        // Grid coordinates, tracked separately from the jittered render
+        // position — layer twists select cubelets by these, and get
+        // rotated 90° along with the mesh so later twists still pick
+        // the right set after earlier moves have reshuffled the cube.
+        mesh.userData.grid = { x, y, z };
         group.add(mesh);
       }
     }
   }
-  scene.add(group);
 
   // Soft contact shadow beneath the cube.
   const shadowPlane = new THREE.Mesh(
@@ -113,9 +125,77 @@
     new THREE.ShadowMaterial({ opacity: 0.4 })
   );
   shadowPlane.rotation.x = -Math.PI / 2;
-  shadowPlane.position.y = -1.95;
+  shadowPlane.position.y = -1.6;
   shadowPlane.receiveShadow = true;
   scene.add(shadowPlane);
+
+  // ---- Rubik's-style layer twists ----
+  // Every couple of seconds, pick a random axis + layer (a 3x3 slice of
+  // 9 cubelets) and rotate just that slice 90°, like an actual solve
+  // move — rather than just spinning the whole assembly as one rigid
+  // block. Only one twist runs at a time. THREE.Object3D#attach (r128)
+  // reparents a mesh while preserving its *world* transform, so cubelets
+  // can move between the pivot and the main group mid-scene without any
+  // manual matrix math.
+  const AXES = ["x", "y", "z"];
+  const TWIST_DURATION = 0.68; // seconds
+  let twist = null; // { axis, dir, pivot, meshes, elapsed }
+  let nextTwistAt = 1.4;
+
+  function easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+
+  function startTwist() {
+    const axis = AXES[Math.floor(Math.random() * 3)];
+    const layer = Math.floor(Math.random() * 3) - 1; // -1, 0, or 1
+    const dir = Math.random() < 0.5 ? 1 : -1;
+
+    const meshes = group.children.filter((m) => m.userData.grid[axis] === layer);
+    if (!meshes.length) return; // shouldn't happen, but skip rather than twist nothing
+
+    const pivot = new THREE.Group();
+    group.add(pivot);
+    meshes.forEach((m) => pivot.attach(m));
+
+    twist = { axis, dir, pivot, meshes, elapsed: 0 };
+  }
+
+  function updateTwist(dt, t) {
+    if (!twist) return;
+    twist.elapsed += dt;
+    const p = Math.min(twist.elapsed / TWIST_DURATION, 1);
+    const angle = easeInOutCubic(p) * (Math.PI / 2) * twist.dir;
+    twist.pivot.rotation[twist.axis] = angle;
+
+    if (p >= 1) {
+      // Bake the 90° turn into each cubelet's own transform, reparent
+      // back to the main group, and rotate its stored grid coordinate
+      // to match — so the next twist that picks this layer again
+      // selects the right cubelets.
+      const { axis: a, dir } = twist;
+      twist.meshes.forEach((m) => {
+        group.attach(m);
+        const g = m.userData.grid;
+        if (a === "x") {
+          const { y, z } = g;
+          g.y = dir > 0 ? -z : z;
+          g.z = dir > 0 ? y : -y;
+        } else if (a === "y") {
+          const { x, z } = g;
+          g.x = dir > 0 ? z : -z;
+          g.z = dir > 0 ? -x : x;
+        } else {
+          const { x, y } = g;
+          g.x = dir > 0 ? -y : y;
+          g.y = dir > 0 ? x : -x;
+        }
+      });
+      group.remove(twist.pivot);
+      twist = null;
+      nextTwistAt = t + 1.6 + Math.random() * 1.6;
+    }
+  }
 
   let pointerX = 0;
   let pointerY = 0;
@@ -156,18 +236,34 @@
     tabVisible = document.visibilityState === "visible";
   });
 
+  // Single time source for the whole frame — Three.js's Clock advances
+  // its internal delta every time getElapsedTime()/getDelta() is called,
+  // so calling it more than once per frame would silently double-count.
+  // Everything below derives dt from one call and passes it around.
   const clock = new THREE.Clock();
+  let lastT = 0;
   let readyShown = false;
 
   function animate() {
     requestAnimationFrame(animate);
-    if (!heroVisible || !tabVisible) return;
+    if (!heroVisible || !tabVisible) {
+      lastT = clock.getElapsedTime(); // keep dt sane for the frame after we resume
+      return;
+    }
 
     const t = clock.getElapsedTime();
+    const dt = Math.min(t - lastT, 0.1);
+    lastT = t;
 
     if (!reduceMotion) {
-      group.rotation.y = t * 0.18;
-      group.rotation.x = Math.sin(t * 0.3) * 0.08;
+      // Gentle idle sway so the cube still reads as "alive" in the gaps
+      // between twists, without competing with the twist itself for
+      // attention — the twists are the main motion here, not a spin.
+      group.rotation.x = Math.sin(t * 0.25) * 0.03;
+      group.rotation.z = Math.cos(t * 0.2) * 0.02;
+
+      if (!twist && t >= nextTwistAt) startTwist();
+      updateTwist(dt, t);
     }
 
     targetX += (pointerX - targetX) * 0.04;
