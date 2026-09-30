@@ -615,27 +615,13 @@ hr.rule {
   .hero-channels-track { animation: none; }
 }
 
-/* Auto-scrolling marquee reads fine on desktop where you're just
-   glancing at it, but on a phone it fights your thumb — the strip keeps
-   sliding under you mid-swipe. Below 640px, drop the animation and the
-   duplicated loop-set (only needed for the seamless auto-scroll) and
-   let it be a normal horizontally-scrollable row instead: swipe or
-   click-drag across it, nothing moves on its own. */
+/* Runs the same auto-scrolling marquee as desktop on mobile now too —
+   previously this disabled the animation below 640px since it could
+   fight a thumb mid-swipe, but kept :hover-pause (desktop-only anyway)
+   isn't reachable on touch, so add a tap-to-pause fallback via
+   :active so it's still possible to stop it and read a tag. */
 @media (max-width: 640px) {
-  .hero-channels {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x proximity;
-    -webkit-mask-image: none;
-    mask-image: none;
-    padding-bottom: 6px;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-  .hero-channels::-webkit-scrollbar { display: none; }
-  .hero-channels-track { animation: none; width: auto; }
-  .hero-channels-group:nth-of-type(2) { display: none; }
-  .hero-channels .tag { scroll-snap-align: start; }
+  .hero-channels:active .hero-channels-track { animation-play-state: paused; }
 }
 
 /* On-load stagger. Deliberately separate from the scroll-triggered
