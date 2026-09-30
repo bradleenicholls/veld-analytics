@@ -364,9 +364,9 @@
       // different, non-matching frequencies rather than one steady spin,
       // so it drifts up/down and side to side rather than just yawing
       // right, and never quite repeats the same path.
-      group.rotation.y = t * 0.3 + Math.sin(t * 0.11) * 0.6;
-      group.rotation.x = Math.sin(t * 0.24) * 0.4 + Math.sin(t * 0.09 + 1.7) * 0.2;
-      group.rotation.z = Math.sin(t * 0.17 + 0.8) * 0.3 + Math.sin(t * 0.06) * 0.15;
+      group.rotation.y = t * 0.62 + Math.sin(t * 0.23) * 0.9 + Math.sin(t * 0.51 + 2.2) * 0.3;
+      group.rotation.x = Math.sin(t * 0.45) * 0.55 + Math.sin(t * 0.19 + 1.7) * 0.35;
+      group.rotation.z = Math.sin(t * 0.33 + 0.8) * 0.45 + Math.sin(t * 0.14) * 0.25;
 
       if (!twist && t >= nextTwistAt) startTwist();
       updateTwist(dt, t);
