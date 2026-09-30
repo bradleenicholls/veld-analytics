@@ -666,6 +666,63 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const TYPE_DEFAULT_METRIC = { ga4: "sessions", ppc: "clicks", seo: "clicks" };
 
+  // The channel breakdown bars and the "by month" stacked bar below them
+  // used to stay frozen no matter which metric tab was active — they're
+  // driven by data.breakdown / typeData.channelMonths, which only ever had
+  // one fixed set of numbers per range, with no per-metric variant. That
+  // read as broken (click Revenue, nothing about the channel mix updates).
+  // Rather than hand-write a full separate breakdown/channelMonths dataset
+  // for every type x range x metric combination, each non-default metric
+  // gets a small per-channel multiplier here (e.g. Paid indexes higher for
+  // Revenue than for Users) and the two render calls below scale the base
+  // numbers by it. Illustrative only, like the rest of this demo data —
+  // just enough to make switching metrics visibly move the channel mix.
+  const METRIC_CHANNEL_WEIGHTS = {
+    ga4: {
+      users: { Organic: 1.05, Paid: 0.9, Direct: 1.05, Referral: 1, "Organic Search": 1.05, "Paid Search": 0.88, "Organic Social": 0.95, Email: 0.9 },
+      clicks: { Organic: 0.85, Paid: 1.35, Direct: 0.8, Referral: 1, "Organic Search": 0.85, "Paid Search": 1.35, "Organic Social": 1.1, Email: 0.9 },
+      revenue: { Organic: 0.85, Paid: 1.3, Direct: 1.25, Referral: 0.9, "Organic Search": 0.85, "Paid Search": 1.3, "Organic Social": 0.75, Email: 1.15 },
+    },
+    ppc: {
+      impressions: { Search: 0.85, Shopping: 0.9, "Performance Max": 1.3, Display: 1.6 },
+      cost: { Search: 0.95, Shopping: 1.2, "Performance Max": 1.15, Display: 0.7 },
+      conversions: { Search: 1.2, Shopping: 1.25, "Performance Max": 0.85, Display: 0.5 },
+    },
+    seo: {
+      impressions: { "Non-branded": 1.3, Branded: 0.6, Local: 1.1, Informational: 1.4 },
+      ctr: { "Non-branded": 0.8, Branded: 1.8, Local: 1.1, Informational: 0.7 },
+      position: { "Non-branded": 0.85, Branded: 1.5, Local: 1.2, Informational: 0.6 },
+    },
+  };
+
+  function channelWeight(type, metric, name) {
+    const set = METRIC_CHANNEL_WEIGHTS[type] && METRIC_CHANNEL_WEIGHTS[type][metric];
+    return (set && set[name]) || 1;
+  }
+
+  // Re-weights a breakdown list (name/pct pairs) for the active metric and
+  // renormalises so the percentages still sum to 100.
+  function weightedBreakdown(list, type, metric) {
+    const weighted = list.map((item) => ({ name: item.name, raw: item.pct * channelWeight(type, metric, item.name) }));
+    const total = weighted.reduce((sum, w) => sum + w.raw, 0) || 1;
+    const out = weighted.map((w) => ({ name: w.name, pct: Math.round((w.raw / total) * 100) }));
+    const drift = 100 - out.reduce((sum, o) => sum + o.pct, 0);
+    if (drift !== 0 && out.length) out[0].pct += drift;
+    return out;
+  }
+
+  // Same idea for the monthly stacked-bar series — these are absolute
+  // counts rather than percentages, so no renormalising needed.
+  function weightedChannelMonths(monthsData, type, metric) {
+    return {
+      months: monthsData.months,
+      series: monthsData.series.map((s) => ({
+        name: s.name,
+        values: s.values.map((v) => Math.round(v * channelWeight(type, metric, s.name))),
+      })),
+    };
+  }
+
   const PIE_COLORS = ["#82A7FF", "#DFF7FF", "#2457FF", "#5C7FE0", "#3D4E8C"];
 
   const typeToggle = root.querySelector(".demo-type-toggle");
@@ -999,7 +1056,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Breakdown row: GA4/PPC/SEO's own breakdown, Social "all" platform mix,
     // or a specific Social platform's content-type split.
     if (isFullType) {
-      renderBreakdownBars(data.breakdown);
+      renderBreakdownBars(weightedBreakdown(data.breakdown, currentType, currentMetric));
     } else if (currentPlatform === "all") {
       renderBreakdownBars(data.breakdown);
     } else {
@@ -1010,7 +1067,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const typeData = DATA_BY_TYPE[currentType];
       renderPie(typeData.demographics);
       renderTopPages(data.topPages);
-      renderStackbar(typeData.channelMonths);
+      renderStackbar(weightedChannelMonths(typeData.channelMonths, currentType, currentMetric));
     }
 
     hideTooltip();
