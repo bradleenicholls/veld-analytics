@@ -93,7 +93,7 @@
   // 20% in one place without re-deriving every position number. ----
   const rig = new THREE.Group();
   rig.scale.setScalar(0.49248); // another 5% down from 0.5184
-  rig.position.y = 0.16; // nudged up slightly in the frame
+  rig.position.y = 0.34; // nudged up again, higher in the frame
   scene.add(rig);
 
   const group = new THREE.Group();
