@@ -467,18 +467,20 @@ hr.rule {
 }
 .hero-cube.is-ready { opacity: 1; }
 
-/* Backdrop behind the cube — inspired by resend.com's hero, which layers
-   two baked image assets there (a "light ray" backdrop and a "floor"
-   backdrop). Those are proprietary raster images, not reusable code, so
-   this is a from-scratch CSS equivalent instead of a copy: a soft light
-   beam glowing down from upper-left (matching the scene's own key
-   light) and a dark floor gradient the cube appears to sit on. */
+/* Backdrop for the whole hero — inspired by resend.com's hero, which
+   layers two baked image assets there (a "light ray" backdrop and a
+   "floor" backdrop). Those are proprietary raster images, not reusable
+   code, so this is a from-scratch CSS equivalent instead of a copy: a
+   soft light beam glowing down from upper-right (roughly above the
+   cube) and a dark floor gradient the whole hero appears to sit on.
+   Replaces the previous ambient-glow + dot-grid backdrop outright —
+   one cohesive background instead of two different decorative layers
+   in different corners of the hero. Runs full-width regardless of
+   whether the cube itself is visible (that's the only piece hidden
+   below 1100px, for layout/performance reasons — this CSS is cheap). */
 .hero-cube-glow {
   position: absolute;
-  top: 0;
-  right: 0;
-  width: 52%;
-  height: 100%;
+  inset: 0;
   z-index: -2;
   pointer-events: none;
   overflow: hidden;
@@ -487,11 +489,11 @@ hr.rule {
   content: "";
   position: absolute;
   top: -12%;
-  left: 6%;
-  width: 75%;
+  left: 46%;
+  width: 46%;
   height: 68%;
   background: radial-gradient(
-    ellipse at 32% 0%,
+    ellipse at 40% 0%,
     rgba(130, 167, 255, 0.24) 0%,
     rgba(130, 167, 255, 0.1) 38%,
     transparent 72%
@@ -506,47 +508,6 @@ hr.rule {
 }
 @media (max-width: 1100px) {
   .hero-cube { display: none; }
-  .hero-cube-glow { display: none; }
-}
-
-/* Soft ambient glow behind the copy — the hero has no background effects
-   elsewhere on the page, so this is the only thing keeping the first
-   screen from reading as flat, empty colour. Purely decorative. */
-.hero-stack::before {
-  content: "";
-  position: absolute;
-  top: 8%;
-  left: 6%;
-  width: 620px;
-  height: 620px;
-  max-width: 90vw;
-  background: radial-gradient(circle, var(--gold-soft) 0%, transparent 68%);
-  filter: blur(10px);
-  pointer-events: none;
-  z-index: -1;
-  animation: hero-glow-drift 22s ease-in-out infinite alternate;
-}
-/* Slow, subtle drift — never far enough to feel like it's "playing",
-   just enough that the first screen doesn't feel static. */
-@keyframes hero-glow-drift {
-  0%   { transform: translate(0, 0) scale(1); }
-  50%  { transform: translate(4%, 6%) scale(1.08); }
-  100% { transform: translate(-3%, -4%) scale(0.96); }
-}
-.hero-stack::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(var(--border) 1px, transparent 1px);
-  background-size: 34px 34px;
-  mask-image: radial-gradient(ellipse 60% 55% at 30% 40%, #000 0%, transparent 75%);
-  -webkit-mask-image: radial-gradient(ellipse 60% 55% at 30% 40%, #000 0%, transparent 75%);
-  opacity: 0.5;
-  pointer-events: none;
-  z-index: -1;
-}
-@media (prefers-reduced-motion: reduce) {
-  .hero-stack::before { animation: none; }
 }
 
 .hero-stack .container {
