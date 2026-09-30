@@ -482,8 +482,9 @@ hr.rule {
     radial-gradient(ellipse 46% 50% at 78% 36%, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 44%, transparent 72%),
     #000;
 }
-/* Spotlight — a wide cone of light from the top-right corner, opening
-   up as it travels down-left onto the cube (not a single thin ray). */
+/* Spotlight — a thin, pointed beam from the top-right corner aimed
+   straight at the cube, distinct from the softer ambient pool sitting
+   behind it (in the base background above). */
 .hero-cube-glow::before {
   content: "";
   position: absolute;
@@ -492,9 +493,9 @@ hr.rule {
   width: 65%;
   height: 130%;
   background: radial-gradient(
-    ellipse 48% 120% at 80% 2%,
-    rgba(255, 255, 255, 0.15) 0%,
-    rgba(255, 255, 255, 0.06) 45%,
+    ellipse 16% 120% at 80% 2%,
+    rgba(255, 255, 255, 0.2) 0%,
+    rgba(255, 255, 255, 0.07) 45%,
     transparent 78%
   );
   transform: rotate(-30deg);
