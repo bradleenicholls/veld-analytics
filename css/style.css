@@ -695,6 +695,12 @@ hr.rule {
   position: relative;
   z-index: 1;
   padding: 20px 0 100px;
+  /* The "See it in action" scroll cue jumps straight to this section's
+     top edge — with no offset, that lands right under the fixed .nav
+     bar (~104px tall), hiding the "Sample dashboard" eyebrow/heading
+     behind it and making the scroll look like it went too far. This
+     reserves that space so the heading actually ends up visible. */
+  scroll-margin-top: 130px;
 }
 .dashboard-showcase-head {
   text-align: center;
