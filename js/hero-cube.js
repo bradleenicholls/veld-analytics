@@ -75,7 +75,7 @@
   // Wrapped in a "rig" purely so the whole assembly can be scaled down
   // 20% in one place without re-deriving every position number. ----
   const rig = new THREE.Group();
-  rig.scale.setScalar(0.8);
+  rig.scale.setScalar(0.64); // 20% smaller again, on top of the previous 20% cut
   scene.add(rig);
 
   const group = new THREE.Group();
@@ -83,9 +83,42 @@
 
   const CUBE_SIZE = 1;
   const SPACING = 1.001; // just enough to avoid z-fighting between touching faces
-  const geometry = new THREE.BoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE);
 
-  const TITANIUM = "#4d6b84";
+  // Rounded/soft edges. The CDN build of three.js (three.min.js) doesn't
+  // include the examples/addons RoundedBoxGeometry, so this is a small
+  // hand-rolled version of the same standard technique: start from a
+  // subdivided box, then pull every vertex toward the surface of a
+  // rounded corner (clamp to an inset box, then push out along the
+  // remaining offset by the bevel radius), and recompute normals so
+  // lighting treats it as genuinely curved rather than faceted.
+  function createRoundedBoxGeometry(size, radius, segments) {
+    const geo = new THREE.BoxGeometry(size, size, size, segments, segments, segments);
+    const half = size / 2;
+    const inner = half - radius;
+    const pos = geo.attributes.position;
+    const v = new THREE.Vector3();
+    for (let i = 0; i < pos.count; i++) {
+      v.fromBufferAttribute(pos, i);
+      const cx = THREE.MathUtils.clamp(v.x, -inner, inner);
+      const cy = THREE.MathUtils.clamp(v.y, -inner, inner);
+      const cz = THREE.MathUtils.clamp(v.z, -inner, inner);
+      const dx = v.x - cx;
+      const dy = v.y - cy;
+      const dz = v.z - cz;
+      const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      if (dist > 1e-6) {
+        const scale = radius / dist;
+        v.set(cx + dx * scale, cy + dy * scale, cz + dz * scale);
+        pos.setXYZ(i, v.x, v.y, v.z);
+      }
+    }
+    geo.computeVertexNormals();
+    return geo;
+  }
+  const geometry = createRoundedBoxGeometry(CUBE_SIZE, 0.14, 5);
+
+  const BASE_BLACK = "#0c0d10"; // cube body
+  const TITANIUM = "#4d6b84"; // metallic-blue pattern accents
   const TITANIUM_DARK = "#33475a";
   const TITANIUM_LIGHT = "#87acc9";
 
@@ -109,7 +142,7 @@
     const c = document.createElement("canvas");
     c.width = c.height = size;
     const ctx = c.getContext("2d");
-    ctx.fillStyle = TITANIUM;
+    ctx.fillStyle = BASE_BLACK;
     ctx.fillRect(0, 0, size, size);
 
     if (kind === "dots") {
@@ -167,7 +200,7 @@
         const material = new THREE.MeshStandardMaterial({
           map: getTexture(kind),
           metalness: 0.8,
-          roughness: kind === "glossy" ? 0.15 : kind === "plain" ? 0.35 : 0.5,
+          roughness: kind === "glossy" ? 0.15 : kind === "plain" ? 0.28 : 0.5,
         });
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(x * SPACING, y * SPACING, z * SPACING);
