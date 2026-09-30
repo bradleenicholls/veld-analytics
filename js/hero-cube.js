@@ -56,13 +56,13 @@
   // turned up from before so the cube reads as consistently lit overall
   // — like it's floating in its own pool of light — rather than mostly
   // black with a few bright spots.
-  const ambient = new THREE.AmbientLight(0x9a9ea3, 0.85);
+  const ambient = new THREE.AmbientLight(0x9a9ea3, 0.55);
   scene.add(ambient);
 
-  const hemi = new THREE.HemisphereLight(0xaab0b8, 0x1c1e21, 0.8);
+  const hemi = new THREE.HemisphereLight(0xaab0b8, 0x1c1e21, 0.55);
   scene.add(hemi);
 
-  const key = new THREE.DirectionalLight(0xffffff, 1.8);
+  const key = new THREE.DirectionalLight(0xffffff, 1.6);
   key.position.set(4, 6, 4);
   key.castShadow = true;
   key.shadow.mapSize.set(1024, 1024);
@@ -72,18 +72,18 @@
   key.shadow.camera.bottom = -4;
   scene.add(key);
 
-  const rimCoral = new THREE.PointLight(0xc7cdd4, 2, 16);
+  const rimCoral = new THREE.PointLight(0xc7cdd4, 1.5, 16);
   rimCoral.position.set(-3.2, 1.6, -2.4);
   scene.add(rimCoral);
 
-  const fillBlue = new THREE.PointLight(0xb4b9c0, 1.7, 16);
+  const fillBlue = new THREE.PointLight(0xb4b9c0, 1.3, 16);
   fillBlue.position.set(2.6, -1.2, 3.2);
   scene.add(fillBlue);
 
   // Soft front fill near the camera, so the faces actually facing the
   // viewer stay visible/readable rather than falling into shadow once
   // the cube's twist/tumble turns a dark side toward us.
-  const frontFill = new THREE.PointLight(0xc4c8cc, 1.3, 16);
+  const frontFill = new THREE.PointLight(0xc4c8cc, 0.9, 16);
   frontFill.position.set(BASE_CAM.x, BASE_CAM.y, BASE_CAM.z);
   scene.add(frontFill);
 
@@ -217,8 +217,8 @@
         const kind = PATTERN_KINDS[Math.floor(seededRandom(seed) * PATTERN_KINDS.length)];
         const material = new THREE.MeshStandardMaterial({
           map: getTexture(kind),
-          metalness: 0.88,
-          roughness: kind === "glossy" ? 0.14 : kind === "plain" ? 0.2 : 0.28,
+          metalness: 0.97,
+          roughness: kind === "glossy" ? 0.1 : kind === "plain" ? 0.14 : 0.22,
         });
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(x * SPACING, y * SPACING, z * SPACING);
