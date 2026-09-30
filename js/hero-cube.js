@@ -50,11 +50,16 @@
   // two coloured point lights (coral + blue, the site's own accent
   // pair) standing in for rim/bounce light.
   // Neutral, mostly-white lighting rig — no blue/coral colour casts on
-  // the metal itself, just a bright key light for tight specular glints
-  // (low roughness needs a strong, concentrated source to "catch" light
-  // rather than spreading it) and two dim neutral fills for gentle
-  // falloff on the cube's shadowed faces.
-  const hemi = new THREE.HemisphereLight(0xaab0b8, 0x08090a, 0.28);
+  // the metal itself. One strong key light still does the work of the
+  // crisp specular glints (low roughness needs a concentrated source to
+  // "catch" light rather than spreading it), but everything else is
+  // turned up from before so the cube reads as consistently lit overall
+  // — like it's floating in its own pool of light — rather than mostly
+  // black with a few bright spots.
+  const ambient = new THREE.AmbientLight(0x9a9ea3, 0.55);
+  scene.add(ambient);
+
+  const hemi = new THREE.HemisphereLight(0xaab0b8, 0x1c1e21, 0.55);
   scene.add(hemi);
 
   const key = new THREE.DirectionalLight(0xffffff, 1.6);
@@ -67,13 +72,20 @@
   key.shadow.camera.bottom = -4;
   scene.add(key);
 
-  const rimCoral = new THREE.PointLight(0xc7cdd4, 0.9, 14);
+  const rimCoral = new THREE.PointLight(0xc7cdd4, 1.5, 16);
   rimCoral.position.set(-3.2, 1.6, -2.4);
   scene.add(rimCoral);
 
-  const fillBlue = new THREE.PointLight(0xb4b9c0, 0.7, 14);
+  const fillBlue = new THREE.PointLight(0xb4b9c0, 1.3, 16);
   fillBlue.position.set(2.6, -1.2, 3.2);
   scene.add(fillBlue);
+
+  // Soft front fill near the camera, so the faces actually facing the
+  // viewer stay visible/readable rather than falling into shadow once
+  // the cube's twist/tumble turns a dark side toward us.
+  const frontFill = new THREE.PointLight(0xc4c8cc, 0.9, 16);
+  frontFill.position.set(BASE_CAM.x, BASE_CAM.y, BASE_CAM.z);
+  scene.add(frontFill);
 
   // ---- Cubelets: 3x3x3 grid, flush against each other (no gaps) so it
   // reads as one solid cube rather than a scattered set of blocks.
