@@ -424,6 +424,27 @@ hr.rule {
   overflow: hidden;
 }
 
+/* Reactive wireframe terrain (js/hero-terrain.js, Three.js). Canvas sits
+   at the same negative z-index as the ambient glow/dot-grid below, so it
+   layers with them rather than covering them — all three are purely
+   decorative and sit behind .container's in-flow content automatically
+   (static in-flow content always paints above negative z-index siblings,
+   no explicit z-index needed on .container itself). Hidden until the
+   script marks it ready, so there's no flash of an unstyled canvas
+   before Three.js has sized and rendered into it. */
+.hero-terrain {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.2s var(--ease);
+}
+.hero-terrain.is-ready { opacity: 1; }
+
 /* Soft ambient glow behind the copy — the hero has no background effects
    elsewhere on the page, so this is the only thing keeping the first
    screen from reading as flat, empty colour. Purely decorative. */
