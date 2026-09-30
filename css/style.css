@@ -467,17 +467,20 @@ hr.rule {
 }
 .hero-cube.is-ready { opacity: 1; }
 
-/* Backdrop for the whole hero — pitch black, with just two intentional
-   light shapes on top (the spotlight and the streak below) rather than
-   any ambient wash/room-fill. ::before/::after carry those two
-   *directional* shapes, since each needs its own rotation. */
+/* Backdrop for the whole hero — pitch black, with a soft ambient glow
+   pooled directly behind the cube (axis-aligned, so it lives on the
+   element's own background) plus two directional light shapes on top
+   (the spotlight and the streak below, in ::before/::after since each
+   needs its own rotation). */
 .hero-cube-glow {
   position: absolute;
   inset: 0;
   z-index: -2;
   pointer-events: none;
   overflow: hidden;
-  background: #000;
+  background:
+    radial-gradient(ellipse 40% 44% at 78% 36%, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.03) 42%, transparent 70%),
+    #000;
 }
 /* Spotlight — a wide cone of light from the top-right corner, opening
    up as it travels down-left onto the cube (not a single thin ray). */
@@ -501,19 +504,21 @@ hr.rule {
 /* Long, shallow diagonal streak spanning the full width of the hero,
    passing beneath the cube — starts higher on the left, descends
    gently to the right, matching the reference photo's full-width
-   streak rather than a short segment confined near the cube. */
+   streak. Raised up closer to the cube's underside (was 78%) so it
+   reads as the cube casting/catching that light right where it sits,
+   for depth, rather than floating far below it. */
 .hero-cube-glow::after {
   content: "";
   position: absolute;
   inset: 0;
   background: radial-gradient(
-    ellipse 90% 6% at 45% 78%,
+    ellipse 90% 6% at 45% 62%,
     rgba(255, 255, 255, 0.09) 0%,
     rgba(255, 255, 255, 0.04) 35%,
     transparent 78%
   );
   transform: rotate(13deg);
-  transform-origin: 45% 78%;
+  transform-origin: 45% 62%;
 }
 @media (max-width: 1100px) {
   .hero-cube { display: none; }
