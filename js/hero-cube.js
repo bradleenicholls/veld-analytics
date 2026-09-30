@@ -82,12 +82,11 @@
   rig.add(group);
 
   const CUBE_SIZE = 1;
-  // Rounded edges (below) recess the surface near every edge, so flush
-  // (spacing === size) left a thin gap between cubelets where both
-  // neighbouring bevels curve away from each other. Pulling them
-  // slightly closer than their own size overlaps the flat, un-rounded
-  // cores enough to hide that seam completely.
-  const SPACING = 0.9;
+  // A real Rubik's cube has flat, near-square panels with a thin visible
+  // seam between cubelets — not a continuous rounded surface. Spacing
+  // slightly larger than the cubelet size (rather than overlapping)
+  // opens up that seam now that the corner radius below is tiny.
+  const SPACING = 1.05;
 
   // Rounded/soft edges. The CDN build of three.js (three.min.js) doesn't
   // include the examples/addons RoundedBoxGeometry, so this is a small
@@ -120,7 +119,10 @@
     geo.computeVertexNormals();
     return geo;
   }
-  const geometry = createRoundedBoxGeometry(CUBE_SIZE, 0.14, 5);
+  // A small radius just takes the razor edge off so it doesn't alias —
+  // this used to be 0.14 (a visibly rounded, "puffy" bevel); a real
+  // Rubik's cube panel reads as flat and sharp-edged, not soft.
+  const geometry = createRoundedBoxGeometry(CUBE_SIZE, 0.025, 2);
 
   const BASE_BLACK = "#020203"; // cube body — as close to true black as still reads as a colour
   const TITANIUM = "#324457"; // metallic-blue pattern accents, dialled back to a hint rather than a bold tone
