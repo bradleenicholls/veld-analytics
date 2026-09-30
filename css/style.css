@@ -1331,6 +1331,13 @@ body { perspective: none; }
    ============================================================ */
 
 .ambient-bg {
+  /* Disabled — this faint blue glow + grid pattern was the reason every
+     page except the hero read as dark grey/blue instead of the same
+     pitch black as the hero (the hero has its own separate black
+     backdrop layered above this one; everywhere else, this is what was
+     showing through). Left in the markup/CSS rather than deleted, in
+     case a subtler version of it is wanted back later. */
+  display: none;
   position: fixed;
   inset: 0;
   z-index: 0;
