@@ -18,7 +18,7 @@
                          case-study/gallery captions and highlight moments only,
                          kept separate from the primary blue signal (6.8:1 on bg,
                          text-safe). Used sparingly, not a site-wide replacement. */
-  --bg: #17171c;
+  --bg: #000000; /* matches the hero's pitch-black backdrop, site-wide */
   --bg-soft: #1c1c22;
   --surface: #202028;
   --surface-elevated: #26262f;
