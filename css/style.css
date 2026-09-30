@@ -467,44 +467,46 @@ hr.rule {
 }
 .hero-cube.is-ready { opacity: 1; }
 
-/* Backdrop for the whole hero — near-black across the board (left side
-   stays flat black, no light reaches it) with one very feint spotlight
-   pooling in the top-right corner and falling toward the cube. Purely
-   there to sell depth on the cube — it should read as a faint hint of
-   light, not a visible "beam" shape. */
+/* Backdrop for the whole hero — meant to read as a dim room the cube is
+   floating in, not an empty void with one spotlight in the corner: a
+   base tone that's dark but not a flat black hole, a broad soft
+   overhead ambient wash (like bounced light filling the space), the
+   top-right spotlight falling toward the cube, and a soft floor-bounce
+   glow grounding it from below. */
 .hero-cube-glow {
   position: absolute;
   inset: 0;
   z-index: -2;
   pointer-events: none;
   overflow: hidden;
-  background: #030303;
+  background: #0a0b0c;
 }
-/* Feint top-right spotlight, falling down-left toward the cube. */
+/* Broad overhead ambient wash (room fill light) + the top-right
+   spotlight — both kept centred over the cube's side of the hero only,
+   so the left/copy side stays flat black and this reads as light
+   pooling in one part of the room rather than a wash across everything. */
 .hero-cube-glow::before {
   content: "";
   position: absolute;
-  top: -15%;
-  right: -15%;
-  width: 70%;
-  height: 70%;
-  background: radial-gradient(
-    ellipse at 100% 0%,
-    rgba(255, 255, 255, 0.08) 0%,
-    rgba(255, 255, 255, 0.03) 38%,
-    transparent 68%
-  );
-  filter: blur(26px);
+  inset: 0;
+  background:
+    radial-gradient(ellipse 48% 65% at 80% -10%, rgba(255, 255, 255, 0.06) 0%, transparent 62%),
+    radial-gradient(ellipse 55% 70% at 100% 0%, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.03) 38%, transparent 68%);
+  filter: blur(30px);
 }
-/* Tight glow pooling directly behind the cube itself, plus the vignette
-   that keeps the far edges pinned back down toward black. */
+/* Glow pooling directly behind the cube, a soft floor-bounce glow
+   grounding it from below (both tight to the cube's footprint), and a
+   gentler vignette than before (the base tone already does most of the
+   darkening now, so the edges don't need to be crushed all the way to
+   black). */
 .hero-cube-glow::after {
   content: "";
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 42% 42% at 80% 42%, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.03) 40%, transparent 65%),
-    linear-gradient(180deg, transparent 0%, transparent 55%, rgba(0, 0, 0, 0.55) 80%, rgba(0, 0, 0, 0.9) 100%);
+    radial-gradient(ellipse 38% 42% at 80% 42%, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 40%, transparent 65%),
+    radial-gradient(ellipse 34% 20% at 80% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 70%),
+    linear-gradient(180deg, transparent 0%, transparent 52%, rgba(0, 0, 0, 0.4) 80%, rgba(0, 0, 0, 0.78) 100%);
 }
 @media (max-width: 1100px) {
   .hero-cube { display: none; }
