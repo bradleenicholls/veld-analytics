@@ -62,7 +62,10 @@
   const hemi = new THREE.HemisphereLight(0xaab0b8, 0x1c1e21, 0.55);
   scene.add(hemi);
 
-  const key = new THREE.DirectionalLight(0xffffff, 1.6);
+  // Bumped up a little from 1.6 — reads as a spotlight catching the
+  // cube (stronger highlight/contrast on the lit side) rather than the
+  // flatter, uniformly-brighter look of raising the ambient/fill lights.
+  const key = new THREE.DirectionalLight(0xffffff, 1.9);
   key.position.set(4, 6, 4);
   key.castShadow = true;
   key.shadow.mapSize.set(1024, 1024);
@@ -219,13 +222,6 @@
           map: getTexture(kind),
           metalness: 0.97,
           roughness: kind === "glossy" ? 0.1 : kind === "plain" ? 0.14 : 0.22,
-          // Test overlay: a low-opacity "metallic baby blue" tint, added
-          // as emissive (additive, on top of the existing dark metal
-          // look) rather than mixed into the base colour — keeps every
-          // material property above exactly as it was, just adds a thin
-          // blue sheen over it. Easy to remove: delete these two lines.
-          emissive: new THREE.Color(0xa9d4f5),
-          emissiveIntensity: 0.015,
         });
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(x * SPACING, y * SPACING, z * SPACING);
