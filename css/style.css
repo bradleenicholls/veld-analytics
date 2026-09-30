@@ -466,8 +466,47 @@ hr.rule {
   transition: opacity 1.2s var(--ease);
 }
 .hero-cube.is-ready { opacity: 1; }
+
+/* Backdrop behind the cube — inspired by resend.com's hero, which layers
+   two baked image assets there (a "light ray" backdrop and a "floor"
+   backdrop). Those are proprietary raster images, not reusable code, so
+   this is a from-scratch CSS equivalent instead of a copy: a soft light
+   beam glowing down from upper-left (matching the scene's own key
+   light) and a dark floor gradient the cube appears to sit on. */
+.hero-cube-glow {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 52%;
+  height: 100%;
+  z-index: -2;
+  pointer-events: none;
+  overflow: hidden;
+}
+.hero-cube-glow::before {
+  content: "";
+  position: absolute;
+  top: -12%;
+  left: 6%;
+  width: 75%;
+  height: 68%;
+  background: radial-gradient(
+    ellipse at 32% 0%,
+    rgba(130, 167, 255, 0.24) 0%,
+    rgba(130, 167, 255, 0.1) 38%,
+    transparent 72%
+  );
+  filter: blur(8px);
+}
+.hero-cube-glow::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 0%, transparent 48%, rgba(0, 0, 0, 0.5) 74%, rgba(0, 0, 0, 0.82) 100%);
+}
 @media (max-width: 1100px) {
   .hero-cube { display: none; }
+  .hero-cube-glow { display: none; }
 }
 
 /* Soft ambient glow behind the copy — the hero has no background effects
