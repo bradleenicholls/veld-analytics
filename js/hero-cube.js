@@ -225,7 +225,7 @@
           // material property above exactly as it was, just adds a thin
           // blue sheen over it. Easy to remove: delete these two lines.
           emissive: new THREE.Color(0xa9d4f5),
-          emissiveIntensity: 0.06,
+          emissiveIntensity: 0.015,
         });
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(x * SPACING, y * SPACING, z * SPACING);
