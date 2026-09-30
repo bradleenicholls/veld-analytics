@@ -445,6 +445,31 @@ hr.rule {
 }
 .hero-terrain.is-ready { opacity: 1; }
 
+/* Reactive titanium-blue cube (js/hero-cube.js, Three.js) — the current
+   hero background, in place of .hero-terrain above (kept as an unused
+   backup; see js/hero-terrain-backup.js for the swap-back note). Unlike
+   the terrain, this isn't full-bleed atmosphere — it's a focal object,
+   so it's sized and positioned to sit beside the left-set copy rather
+   than behind it, echoing the reference layout (text left, object
+   right). Hidden below 1100px: there isn't room for both the copy's own
+   max-width and a same-height object beside it once the viewport gets
+   narrower, and the copy already goes full-width there. */
+.hero-cube {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 52%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.2s var(--ease);
+}
+.hero-cube.is-ready { opacity: 1; }
+@media (max-width: 1100px) {
+  .hero-cube { display: none; }
+}
+
 /* Soft ambient glow behind the copy — the hero has no background effects
    elsewhere on the page, so this is the only thing keeping the first
    screen from reading as flat, empty colour. Purely decorative. */
