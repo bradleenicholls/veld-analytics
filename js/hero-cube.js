@@ -49,10 +49,10 @@
   // hemisphere fill, a white key light casting the contact shadow, and
   // two coloured point lights (coral + blue, the site's own accent
   // pair) standing in for rim/bounce light.
-  const hemi = new THREE.HemisphereLight(0x9fc3e6, 0x090a0d, 0.5);
+  const hemi = new THREE.HemisphereLight(0x9fc3e6, 0x090a0d, 0.32);
   scene.add(hemi);
 
-  const key = new THREE.DirectionalLight(0xeaf2ff, 0.9);
+  const key = new THREE.DirectionalLight(0xeaf2ff, 1.1);
   key.position.set(4, 6, 4);
   key.castShadow = true;
   key.shadow.mapSize.set(1024, 1024);
@@ -62,11 +62,11 @@
   key.shadow.camera.bottom = -4;
   scene.add(key);
 
-  const rimCoral = new THREE.PointLight(0xff7759, 3.5, 14);
+  const rimCoral = new THREE.PointLight(0xff7759, 1.8, 14);
   rimCoral.position.set(-3.2, 1.6, -2.4);
   scene.add(rimCoral);
 
-  const fillBlue = new THREE.PointLight(0x82a7ff, 2.5, 14);
+  const fillBlue = new THREE.PointLight(0x82a7ff, 1.3, 14);
   fillBlue.position.set(2.6, -1.2, 3.2);
   scene.add(fillBlue);
 
@@ -75,7 +75,7 @@
   // Wrapped in a "rig" purely so the whole assembly can be scaled down
   // 20% in one place without re-deriving every position number. ----
   const rig = new THREE.Group();
-  rig.scale.setScalar(0.64); // 20% smaller again, on top of the previous 20% cut
+  rig.scale.setScalar(0.576); // another 10% down from 0.64
   scene.add(rig);
 
   const group = new THREE.Group();
@@ -122,10 +122,10 @@
   }
   const geometry = createRoundedBoxGeometry(CUBE_SIZE, 0.14, 5);
 
-  const BASE_BLACK = "#050506"; // cube body
-  const TITANIUM = "#4d6b84"; // metallic-blue pattern accents
-  const TITANIUM_DARK = "#33475a";
-  const TITANIUM_LIGHT = "#87acc9";
+  const BASE_BLACK = "#020203"; // cube body — as close to true black as still reads as a colour
+  const TITANIUM = "#324457"; // metallic-blue pattern accents, dialled back to a hint rather than a bold tone
+  const TITANIUM_DARK = "#161f28";
+  const TITANIUM_LIGHT = "#5c7992";
 
   function seededRandom(seed) {
     const x = Math.sin(seed) * 10000;
@@ -194,7 +194,7 @@
     return texture;
   }
 
-  const PATTERN_KINDS = ["plain", "plain", "plain", "dots", "speckle", "ribbed", "glossy"];
+  const PATTERN_KINDS = ["plain", "plain", "plain", "plain", "plain", "dots", "speckle", "ribbed", "glossy"];
 
   let seed = 0;
   for (let x = -1; x <= 1; x++) {
@@ -204,8 +204,8 @@
         const kind = PATTERN_KINDS[Math.floor(seededRandom(seed) * PATTERN_KINDS.length)];
         const material = new THREE.MeshStandardMaterial({
           map: getTexture(kind),
-          metalness: 0.72,
-          roughness: kind === "glossy" ? 0.28 : kind === "plain" ? 0.4 : 0.58,
+          metalness: 0.93,
+          roughness: kind === "glossy" ? 0.16 : kind === "plain" ? 0.2 : 0.32,
         });
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(x * SPACING, y * SPACING, z * SPACING);
