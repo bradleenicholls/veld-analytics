@@ -978,7 +978,13 @@ footer {
   padding: 180px 0 90px;
   border-bottom: 1px solid var(--border);
 }
-.page-hero h1 { max-width: 760px; }
+.page-hero h1 {
+  max-width: 760px;
+  /* Same Fraunces treatment as the homepage hero headline, for
+     consistency across every page's top-of-page statement. */
+  font-family: var(--font-hero-serif);
+  font-weight: 500;
+}
 .page-hero-compact { padding-bottom: 70px; border-bottom: none; }
 #demo { padding-top: 40px; }
 
