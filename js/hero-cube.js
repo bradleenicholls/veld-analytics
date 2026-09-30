@@ -70,10 +70,10 @@
   fillBlue.position.set(2.6, -1.2, 3.2);
   scene.add(fillBlue);
 
-  // ---- Cubelets: 3x3x3 grid, gapped and lightly jittered per-cube so it
-  // reads as fragmented/exploded rather than a solid block. Wrapped in a
-  // "rig" purely so the whole assembly can be scaled down 20% in one
-  // place without re-deriving every position/gap/jitter number. ----
+  // ---- Cubelets: 3x3x3 grid, flush against each other (no gaps) so it
+  // reads as one solid cube rather than a scattered set of blocks.
+  // Wrapped in a "rig" purely so the whole assembly can be scaled down
+  // 20% in one place without re-deriving every position number. ----
   const rig = new THREE.Group();
   rig.scale.setScalar(0.8);
   scene.add(rig);
@@ -81,38 +81,102 @@
   const group = new THREE.Group();
   rig.add(group);
 
-  const CUBE_SIZE = 0.86;
-  const SPACING = 1.04;
+  const CUBE_SIZE = 1;
+  const SPACING = 1.001; // just enough to avoid z-fighting between touching faces
   const geometry = new THREE.BoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE);
 
-  const TITANIUM = 0x4d6b84; // titanium blue
-  const TITANIUM_LIGHT = 0x87acc9; // brushed highlight accent cubelets
+  const TITANIUM = "#4d6b84";
+  const TITANIUM_DARK = "#33475a";
+  const TITANIUM_LIGHT = "#87acc9";
 
   function seededRandom(seed) {
     const x = Math.sin(seed) * 10000;
     return x - Math.floor(x);
   }
 
+  // ---- Procedural surface patterns ----
+  // The reference photo's cube isn't one flat material — different
+  // cubelets show a perforated/dot grid, a fine speckled grain, ribbed
+  // vertical lines, a smooth glossy face, or plain brushed metal. Rather
+  // than load texture images (extra assets for a no-build static site),
+  // each pattern is drawn once onto a small canvas and reused as a
+  // THREE.CanvasTexture — still titanium-blue throughout, just varying
+  // surface detail, matching what the photo actually shows.
+  const textureCache = {};
+  function getTexture(kind) {
+    if (textureCache[kind]) return textureCache[kind];
+    const size = 128;
+    const c = document.createElement("canvas");
+    c.width = c.height = size;
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = TITANIUM;
+    ctx.fillRect(0, 0, size, size);
+
+    if (kind === "dots") {
+      ctx.fillStyle = TITANIUM_DARK;
+      for (let gy = 6; gy < size; gy += 14) {
+        for (let gx = 6; gx < size; gx += 14) {
+          ctx.beginPath();
+          ctx.arc(gx, gy, 2.6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    } else if (kind === "speckle") {
+      for (let i = 0; i < 900; i++) {
+        const v = Math.random();
+        ctx.fillStyle = v > 0.5 ? TITANIUM_LIGHT : TITANIUM_DARK;
+        ctx.globalAlpha = Math.random() * 0.5;
+        ctx.fillRect(Math.random() * size, Math.random() * size, 1.4, 1.4);
+      }
+      ctx.globalAlpha = 1;
+    } else if (kind === "ribbed") {
+      ctx.fillStyle = TITANIUM_DARK;
+      for (let gx = 0; gx < size; gx += 8) {
+        ctx.fillRect(gx, 0, 3, size);
+      }
+      ctx.fillStyle = TITANIUM_LIGHT;
+      ctx.globalAlpha = 0.35;
+      for (let gx = 3; gx < size; gx += 8) {
+        ctx.fillRect(gx, 0, 1.5, size);
+      }
+      ctx.globalAlpha = 1;
+    } else if (kind === "glossy") {
+      const grad = ctx.createLinearGradient(0, 0, size, size);
+      grad.addColorStop(0, TITANIUM_LIGHT);
+      grad.addColorStop(0.45, TITANIUM);
+      grad.addColorStop(1, TITANIUM_DARK);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, size, size);
+    }
+    // "plain" kind: just the flat base fill already drawn above.
+
+    const texture = new THREE.CanvasTexture(c);
+    if ("colorSpace" in texture) texture.colorSpace = THREE.SRGBColorSpace;
+    textureCache[kind] = texture;
+    return texture;
+  }
+
+  const PATTERN_KINDS = ["plain", "plain", "plain", "dots", "speckle", "ribbed", "glossy"];
+
   let seed = 0;
   for (let x = -1; x <= 1; x++) {
     for (let y = -1; y <= 1; y++) {
       for (let z = -1; z <= 1; z++) {
         seed++;
-        const isAccent = seededRandom(seed) > 0.8;
+        const kind = PATTERN_KINDS[Math.floor(seededRandom(seed) * PATTERN_KINDS.length)];
         const material = new THREE.MeshStandardMaterial({
-          color: isAccent ? TITANIUM_LIGHT : TITANIUM,
-          metalness: 0.82,
-          roughness: isAccent ? 0.22 : 0.4,
+          map: getTexture(kind),
+          metalness: 0.8,
+          roughness: kind === "glossy" ? 0.15 : kind === "plain" ? 0.35 : 0.5,
         });
         const mesh = new THREE.Mesh(geometry, material);
-        const jitter = (seededRandom(seed * 3.7) - 0.5) * 0.07;
-        mesh.position.set(x * SPACING + jitter, y * SPACING + jitter, z * SPACING + jitter);
+        mesh.position.set(x * SPACING, y * SPACING, z * SPACING);
         mesh.castShadow = true;
         mesh.receiveShadow = true;
-        // Grid coordinates, tracked separately from the jittered render
-        // position — layer twists select cubelets by these, and get
-        // rotated 90° along with the mesh so later twists still pick
-        // the right set after earlier moves have reshuffled the cube.
+        // Grid coordinates, tracked separately from render position —
+        // layer twists select cubelets by these, and get rotated 90°
+        // along with the mesh so later twists still pick the right set
+        // after earlier moves have reshuffled the cube.
         mesh.userData.grid = { x, y, z };
         group.add(mesh);
       }
@@ -256,11 +320,13 @@
     lastT = t;
 
     if (!reduceMotion) {
-      // Gentle idle sway so the cube still reads as "alive" in the gaps
-      // between twists, without competing with the twist itself for
-      // attention — the twists are the main motion here, not a spin.
-      group.rotation.x = Math.sin(t * 0.25) * 0.03;
-      group.rotation.z = Math.cos(t * 0.2) * 0.02;
+      // Continuous whole-cube rotation, same as the very first version,
+      // plus a gentle wobble — with individual layers also twisting on
+      // top of it (a pivot's local rotation composes fine with its
+      // spinning parent, so this looks like someone turning faces on a
+      // cube that's slowly tumbling in space, not two effects fighting).
+      group.rotation.y = t * 0.18;
+      group.rotation.x = Math.sin(t * 0.3) * 0.08;
 
       if (!twist && t >= nextTwistAt) startTwist();
       updateTwist(dt, t);
