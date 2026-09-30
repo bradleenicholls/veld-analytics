@@ -467,54 +467,44 @@ hr.rule {
 }
 .hero-cube.is-ready { opacity: 1; }
 
-/* Backdrop for the whole hero — inspired by resend.com's hero, which
-   layers two baked image assets there (a "light ray" backdrop and a
-   "floor" backdrop). Those are proprietary raster images, not reusable
-   code, so this is a from-scratch CSS equivalent instead of a copy,
-   matched as closely as possible to their actual colour and placement:
-   a near-black base (their hero reads as true black, not this site's
-   lighter --bg grey), a soft diagonal beam of neutral-white light
-   rising from lower-left toward the cube, and a tight glow pooling
-   directly behind/around the cube itself. Runs full-width regardless
-   of whether the cube is visible (only the 3D canvas hides below
-   1100px, for layout/performance — this CSS is cheap either way). */
+/* Backdrop for the whole hero — near-black across the board (left side
+   stays flat black, no light reaches it) with one very feint spotlight
+   pooling in the top-right corner and falling toward the cube. Purely
+   there to sell depth on the cube — it should read as a faint hint of
+   light, not a visible "beam" shape. */
 .hero-cube-glow {
   position: absolute;
   inset: 0;
   z-index: -2;
   pointer-events: none;
   overflow: hidden;
-  background: #060607;
+  background: #030303;
 }
-/* Diagonal light beam — a wide soft band swept across the whole hero,
-   brightest low-left to upper-right (matching the screenshot's light
-   direction, which comes from off-canvas lower-left up toward the
-   cube), neutral white rather than a colour tint. */
+/* Feint top-right spotlight, falling down-left toward the cube. */
 .hero-cube-glow::before {
   content: "";
   position: absolute;
-  left: -25%;
-  bottom: -70%;
-  width: 150%;
-  height: 170%;
-  background: linear-gradient(
-    38deg,
-    transparent 30%,
-    rgba(255, 255, 255, 0.05) 46%,
-    rgba(255, 255, 255, 0.09) 54%,
-    transparent 72%
+  top: -15%;
+  right: -15%;
+  width: 70%;
+  height: 70%;
+  background: radial-gradient(
+    ellipse at 100% 0%,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.03) 38%,
+    transparent 68%
   );
-  filter: blur(18px);
+  filter: blur(26px);
 }
-/* Tight glow pooling behind the cube itself, plus the vignette that
-   darkens the far edges back down toward black. */
+/* Tight glow pooling directly behind the cube itself, plus the vignette
+   that keeps the far edges pinned back down toward black. */
 .hero-cube-glow::after {
   content: "";
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 48% 48% at 80% 42%, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 40%, transparent 68%),
-    linear-gradient(180deg, transparent 0%, transparent 55%, rgba(0, 0, 0, 0.55) 80%, rgba(0, 0, 0, 0.88) 100%);
+    radial-gradient(ellipse 42% 42% at 80% 42%, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.03) 40%, transparent 65%),
+    linear-gradient(180deg, transparent 0%, transparent 55%, rgba(0, 0, 0, 0.55) 80%, rgba(0, 0, 0, 0.9) 100%);
 }
 @media (max-width: 1100px) {
   .hero-cube { display: none; }

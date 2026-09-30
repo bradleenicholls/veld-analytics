@@ -49,10 +49,15 @@
   // hemisphere fill, a white key light casting the contact shadow, and
   // two coloured point lights (coral + blue, the site's own accent
   // pair) standing in for rim/bounce light.
-  const hemi = new THREE.HemisphereLight(0x9fc3e6, 0x090a0d, 0.32);
+  // Neutral, mostly-white lighting rig — no blue/coral colour casts on
+  // the metal itself, just a bright key light for tight specular glints
+  // (low roughness needs a strong, concentrated source to "catch" light
+  // rather than spreading it) and two dim neutral fills for gentle
+  // falloff on the cube's shadowed faces.
+  const hemi = new THREE.HemisphereLight(0xaab0b8, 0x08090a, 0.28);
   scene.add(hemi);
 
-  const key = new THREE.DirectionalLight(0xeaf2ff, 1.1);
+  const key = new THREE.DirectionalLight(0xffffff, 1.6);
   key.position.set(4, 6, 4);
   key.castShadow = true;
   key.shadow.mapSize.set(1024, 1024);
@@ -62,11 +67,11 @@
   key.shadow.camera.bottom = -4;
   scene.add(key);
 
-  const rimCoral = new THREE.PointLight(0xff7759, 1.8, 14);
+  const rimCoral = new THREE.PointLight(0xc7cdd4, 0.9, 14);
   rimCoral.position.set(-3.2, 1.6, -2.4);
   scene.add(rimCoral);
 
-  const fillBlue = new THREE.PointLight(0x82a7ff, 1.3, 14);
+  const fillBlue = new THREE.PointLight(0xb4b9c0, 0.7, 14);
   fillBlue.position.set(2.6, -1.2, 3.2);
   scene.add(fillBlue);
 
@@ -75,18 +80,17 @@
   // Wrapped in a "rig" purely so the whole assembly can be scaled down
   // 20% in one place without re-deriving every position number. ----
   const rig = new THREE.Group();
-  rig.scale.setScalar(0.576); // another 10% down from 0.64
+  rig.scale.setScalar(0.5184); // another 10% down from 0.576
   scene.add(rig);
 
   const group = new THREE.Group();
   rig.add(group);
 
   const CUBE_SIZE = 1;
-  // A real Rubik's cube has flat, near-square panels with a thin visible
-  // seam between cubelets — not a continuous rounded surface. Spacing
-  // slightly larger than the cubelet size (rather than overlapping)
-  // opens up that seam now that the corner radius below is tiny.
-  const SPACING = 1.05;
+  // Flush — no gap between cubelets, reads as one solid block. Safe at
+  // exactly CUBE_SIZE now the corner radius is tiny (no rounded bevel
+  // to open a visible seam at the join).
+  const SPACING = 1;
 
   // Rounded/soft edges. The CDN build of three.js (three.min.js) doesn't
   // include the examples/addons RoundedBoxGeometry, so this is a small
@@ -124,10 +128,10 @@
   // Rubik's cube panel reads as flat and sharp-edged, not soft.
   const geometry = createRoundedBoxGeometry(CUBE_SIZE, 0.025, 2);
 
-  const BASE_BLACK = "#020203"; // cube body — as close to true black as still reads as a colour
-  const TITANIUM = "#324457"; // metallic-blue pattern accents, dialled back to a hint rather than a bold tone
-  const TITANIUM_DARK = "#161f28";
-  const TITANIUM_LIGHT = "#5c7992";
+  const BASE_BLACK = "#050506"; // cube body — true black, no colour tint
+  const STEEL = "#2c2c2e"; // dark-grey pattern accents — no blue anywhere
+  const STEEL_DARK = "#141416";
+  const STEEL_LIGHT = "#47474a";
 
   function seededRandom(seed) {
     const x = Math.sin(seed) * 10000;
@@ -135,13 +139,12 @@
   }
 
   // ---- Procedural surface patterns ----
-  // The reference photo's cube isn't one flat material — different
-  // cubelets show a perforated/dot grid, a fine speckled grain, ribbed
-  // vertical lines, a smooth glossy face, or plain brushed metal. Rather
-  // than load texture images (extra assets for a no-build static site),
-  // each pattern is drawn once onto a small canvas and reused as a
-  // THREE.CanvasTexture — still titanium-blue throughout, just varying
-  // surface detail, matching what the photo actually shows.
+  // Kept subtle on purpose — every cubelet is still the same dark-grey/
+  // black metal, just with slightly different micro-surface detail
+  // (tiny perforation, fine grain, smooth gloss, plain), close enough in
+  // tone that they read as one consistent material rather than a set of
+  // visibly different panels. Each pattern is drawn once onto a small
+  // canvas and reused as a THREE.CanvasTexture.
   const textureCache = {};
   function getTexture(kind) {
     if (textureCache[kind]) return textureCache[kind];
@@ -152,41 +155,36 @@
     ctx.fillStyle = BASE_BLACK;
     ctx.fillRect(0, 0, size, size);
 
-    if (kind === "dots") {
-      ctx.fillStyle = TITANIUM_DARK;
-      for (let gy = 6; gy < size; gy += 14) {
-        for (let gx = 6; gx < size; gx += 14) {
+    if (kind === "perforated") {
+      // Small, tightly-packed holes rather than the previous bigger dot
+      // grid — reads as a perforated metal panel, still mostly black.
+      ctx.fillStyle = STEEL_DARK;
+      ctx.globalAlpha = 0.6;
+      for (let gy = 5; gy < size; gy += 9) {
+        for (let gx = 5; gx < size; gx += 9) {
           ctx.beginPath();
-          ctx.arc(gx, gy, 2.6, 0, Math.PI * 2);
+          ctx.arc(gx, gy, 1.1, 0, Math.PI * 2);
           ctx.fill();
         }
       }
-    } else if (kind === "speckle") {
-      for (let i = 0; i < 900; i++) {
-        const v = Math.random();
-        ctx.fillStyle = v > 0.5 ? TITANIUM_LIGHT : TITANIUM_DARK;
-        ctx.globalAlpha = Math.random() * 0.5;
-        ctx.fillRect(Math.random() * size, Math.random() * size, 1.4, 1.4);
-      }
       ctx.globalAlpha = 1;
-    } else if (kind === "ribbed") {
-      ctx.fillStyle = TITANIUM_DARK;
-      for (let gx = 0; gx < size; gx += 8) {
-        ctx.fillRect(gx, 0, 3, size);
-      }
-      ctx.fillStyle = TITANIUM_LIGHT;
-      ctx.globalAlpha = 0.35;
-      for (let gx = 3; gx < size; gx += 8) {
-        ctx.fillRect(gx, 0, 1.5, size);
+    } else if (kind === "speckle") {
+      for (let i = 0; i < 700; i++) {
+        const v = Math.random();
+        ctx.fillStyle = v > 0.5 ? STEEL_LIGHT : STEEL_DARK;
+        ctx.globalAlpha = Math.random() * 0.22;
+        ctx.fillRect(Math.random() * size, Math.random() * size, 1.4, 1.4);
       }
       ctx.globalAlpha = 1;
     } else if (kind === "glossy") {
       const grad = ctx.createLinearGradient(0, 0, size, size);
-      grad.addColorStop(0, TITANIUM_LIGHT);
-      grad.addColorStop(0.45, TITANIUM);
-      grad.addColorStop(1, TITANIUM_DARK);
+      grad.addColorStop(0, STEEL_LIGHT);
+      grad.addColorStop(0.45, STEEL);
+      grad.addColorStop(1, STEEL_DARK);
+      ctx.globalAlpha = 0.5;
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, size, size);
+      ctx.globalAlpha = 1;
     }
     // "plain" kind: just the flat base fill already drawn above.
 
@@ -196,7 +194,7 @@
     return texture;
   }
 
-  const PATTERN_KINDS = ["plain", "plain", "plain", "plain", "plain", "dots", "speckle", "ribbed", "glossy"];
+  const PATTERN_KINDS = ["plain", "plain", "plain", "plain", "plain", "perforated", "speckle", "glossy"];
 
   let seed = 0;
   for (let x = -1; x <= 1; x++) {
@@ -206,8 +204,8 @@
         const kind = PATTERN_KINDS[Math.floor(seededRandom(seed) * PATTERN_KINDS.length)];
         const material = new THREE.MeshStandardMaterial({
           map: getTexture(kind),
-          metalness: 0.93,
-          roughness: kind === "glossy" ? 0.16 : kind === "plain" ? 0.2 : 0.32,
+          metalness: 0.97,
+          roughness: kind === "glossy" ? 0.1 : kind === "plain" ? 0.14 : 0.22,
         });
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(x * SPACING, y * SPACING, z * SPACING);
