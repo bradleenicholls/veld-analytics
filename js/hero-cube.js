@@ -49,10 +49,10 @@
   // hemisphere fill, a white key light casting the contact shadow, and
   // two coloured point lights (coral + blue, the site's own accent
   // pair) standing in for rim/bounce light.
-  const hemi = new THREE.HemisphereLight(0x9fc3e6, 0x090a0d, 0.6);
+  const hemi = new THREE.HemisphereLight(0x9fc3e6, 0x090a0d, 0.5);
   scene.add(hemi);
 
-  const key = new THREE.DirectionalLight(0xeaf2ff, 1.5);
+  const key = new THREE.DirectionalLight(0xeaf2ff, 0.9);
   key.position.set(4, 6, 4);
   key.castShadow = true;
   key.shadow.mapSize.set(1024, 1024);
@@ -62,11 +62,11 @@
   key.shadow.camera.bottom = -4;
   scene.add(key);
 
-  const rimCoral = new THREE.PointLight(0xff7759, 7, 14);
+  const rimCoral = new THREE.PointLight(0xff7759, 3.5, 14);
   rimCoral.position.set(-3.2, 1.6, -2.4);
   scene.add(rimCoral);
 
-  const fillBlue = new THREE.PointLight(0x82a7ff, 5, 14);
+  const fillBlue = new THREE.PointLight(0x82a7ff, 2.5, 14);
   fillBlue.position.set(2.6, -1.2, 3.2);
   scene.add(fillBlue);
 
@@ -82,7 +82,12 @@
   rig.add(group);
 
   const CUBE_SIZE = 1;
-  const SPACING = 1.001; // just enough to avoid z-fighting between touching faces
+  // Rounded edges (below) recess the surface near every edge, so flush
+  // (spacing === size) left a thin gap between cubelets where both
+  // neighbouring bevels curve away from each other. Pulling them
+  // slightly closer than their own size overlaps the flat, un-rounded
+  // cores enough to hide that seam completely.
+  const SPACING = 0.9;
 
   // Rounded/soft edges. The CDN build of three.js (three.min.js) doesn't
   // include the examples/addons RoundedBoxGeometry, so this is a small
@@ -117,7 +122,7 @@
   }
   const geometry = createRoundedBoxGeometry(CUBE_SIZE, 0.14, 5);
 
-  const BASE_BLACK = "#0c0d10"; // cube body
+  const BASE_BLACK = "#050506"; // cube body
   const TITANIUM = "#4d6b84"; // metallic-blue pattern accents
   const TITANIUM_DARK = "#33475a";
   const TITANIUM_LIGHT = "#87acc9";
@@ -199,8 +204,8 @@
         const kind = PATTERN_KINDS[Math.floor(seededRandom(seed) * PATTERN_KINDS.length)];
         const material = new THREE.MeshStandardMaterial({
           map: getTexture(kind),
-          metalness: 0.8,
-          roughness: kind === "glossy" ? 0.15 : kind === "plain" ? 0.28 : 0.5,
+          metalness: 0.72,
+          roughness: kind === "glossy" ? 0.28 : kind === "plain" ? 0.4 : 0.58,
         });
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(x * SPACING, y * SPACING, z * SPACING);
@@ -353,13 +358,15 @@
     lastT = t;
 
     if (!reduceMotion) {
-      // Continuous whole-cube rotation, same as the very first version,
-      // plus a gentle wobble — with individual layers also twisting on
+      // Continuous whole-cube tumble — individual layers also twist on
       // top of it (a pivot's local rotation composes fine with its
-      // spinning parent, so this looks like someone turning faces on a
-      // cube that's slowly tumbling in space, not two effects fighting).
-      group.rotation.y = t * 0.18;
-      group.rotation.x = Math.sin(t * 0.3) * 0.08;
+      // spinning parent). Each axis is a sum of two sine waves at
+      // different, non-matching frequencies rather than one steady spin,
+      // so it drifts up/down and side to side rather than just yawing
+      // right, and never quite repeats the same path.
+      group.rotation.y = t * 0.3 + Math.sin(t * 0.11) * 0.6;
+      group.rotation.x = Math.sin(t * 0.24) * 0.4 + Math.sin(t * 0.09 + 1.7) * 0.2;
+      group.rotation.z = Math.sin(t * 0.17 + 0.8) * 0.3 + Math.sin(t * 0.06) * 0.15;
 
       if (!twist && t >= nextTwistAt) startTwist();
       updateTwist(dt, t);
