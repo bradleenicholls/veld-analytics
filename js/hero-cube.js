@@ -56,10 +56,10 @@
   // turned up from before so the cube reads as consistently lit overall
   // — like it's floating in its own pool of light — rather than mostly
   // black with a few bright spots.
-  const ambient = new THREE.AmbientLight(0x9a9ea3, 1.1);
+  const ambient = new THREE.AmbientLight(0x9a9ea3, 1.3);
   scene.add(ambient);
 
-  const hemi = new THREE.HemisphereLight(0xaab0b8, 0x1c1e21, 1.1);
+  const hemi = new THREE.HemisphereLight(0xaab0b8, 0x1c1e21, 1.3);
   scene.add(hemi);
 
   // An actual THREE.SpotLight — a real cone of light with an angle,
@@ -72,7 +72,7 @@
   // tumbles, which is why it's surrounded by the several dimmer fill
   // lights below — those keep something lit at all times; this one is
   // the actual visible "spotlight" source.
-  const key = new THREE.SpotLight(0xffffff, 5.5, 22, THREE.MathUtils.degToRad(30), 0.5, 1);
+  const key = new THREE.SpotLight(0xffffff, 6.5, 22, THREE.MathUtils.degToRad(30), 0.5, 1);
   key.position.set(4, 6, 4);
   key.target.position.set(0, 0, 0);
   scene.add(key.target);
@@ -80,29 +80,29 @@
   key.shadow.mapSize.set(1024, 1024);
   scene.add(key);
 
-  const rimCoral = new THREE.PointLight(0xc7cdd4, 1.8, 16);
+  const rimCoral = new THREE.PointLight(0xc7cdd4, 2.1, 16);
   rimCoral.position.set(-3.2, 1.6, -2.4);
   scene.add(rimCoral);
 
-  const fillBlue = new THREE.PointLight(0xb4b9c0, 1.7, 16);
+  const fillBlue = new THREE.PointLight(0xb4b9c0, 2, 16);
   fillBlue.position.set(2.6, -1.2, 3.2);
   scene.add(fillBlue);
 
   // Soft front fill near the camera, so the faces actually facing the
   // viewer stay visible/readable rather than falling into shadow once
   // the cube's twist/tumble turns a dark side toward us.
-  const frontFill = new THREE.PointLight(0xc4c8cc, 1.7, 16);
+  const frontFill = new THREE.PointLight(0xc4c8cc, 2, 16);
   frontFill.position.set(BASE_CAM.x, BASE_CAM.y, BASE_CAM.z);
   scene.add(frontFill);
 
   // Two extra low-key lights from angles none of the others cover (top
   // and far side) — purely to keep a faint glint somewhere on the cube
   // at all times as it tumbles, not to add overall brightness.
-  const topFill = new THREE.PointLight(0xbfc3c8, 1.4, 16);
+  const topFill = new THREE.PointLight(0xbfc3c8, 1.65, 16);
   topFill.position.set(0, 4.2, 0.6);
   scene.add(topFill);
 
-  const farFill = new THREE.PointLight(0xb8bcc2, 1.3, 16);
+  const farFill = new THREE.PointLight(0xb8bcc2, 1.55, 16);
   farFill.position.set(-2.2, -2.6, 2.8);
   scene.add(farFill);
 
@@ -236,13 +236,17 @@
         const kind = PATTERN_KINDS[Math.floor(seededRandom(seed) * PATTERN_KINDS.length)];
         const material = new THREE.MeshStandardMaterial({
           map: getTexture(kind),
-          // Pushed to full metalness and tightened roughness further —
-          // lower roughness concentrates reflections into sharper,
-          // more mirror-like glints rather than a duller, broader
-          // sheen, which reads as "more metal" without just making
-          // everything brighter.
-          metalness: 1,
-          roughness: kind === "glossy" ? 0.06 : kind === "plain" ? 0.09 : 0.16,
+          // Metalness brought down meaningfully (was 0.92) so the
+          // material actually has a diffuse response — pure/near-pure
+          // metal only lights up where a light bounces straight into
+          // the camera, which is why it kept reading as "only visible
+          // via the reflecting light" no matter how bright the lights
+          // got. Roughness kept low (not raised to match) so it still
+          // holds a crisp, defined highlight rather than the soft,
+          // flat "plastic" look — more brushed/satin metal than a
+          // mirror finish, but consistently lit from any angle now.
+          metalness: 0.62,
+          roughness: kind === "glossy" ? 0.09 : kind === "plain" ? 0.12 : 0.19,
         });
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(x * SPACING, y * SPACING, z * SPACING);
