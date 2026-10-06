@@ -56,10 +56,10 @@
   // turned up from before so the cube reads as consistently lit overall
   // — like it's floating in its own pool of light — rather than mostly
   // black with a few bright spots.
-  const ambient = new THREE.AmbientLight(0x9a9ea3, 0.55);
+  const ambient = new THREE.AmbientLight(0x9a9ea3, 0.7);
   scene.add(ambient);
 
-  const hemi = new THREE.HemisphereLight(0xaab0b8, 0x1c1e21, 0.55);
+  const hemi = new THREE.HemisphereLight(0xaab0b8, 0x1c1e21, 0.7);
   scene.add(hemi);
 
   // Bumped up a little from 1.6 — reads as a spotlight catching the
@@ -69,7 +69,7 @@
   // catching the cube (strong highlight, still mostly-dark everywhere
   // else), which holds up better across screen brightness settings than
   // the flatter, evenly-lit look that raising ambient/fill gave it.
-  const key = new THREE.DirectionalLight(0xffffff, 2.4);
+  const key = new THREE.DirectionalLight(0xffffff, 3);
   key.position.set(4, 6, 4);
   key.castShadow = true;
   key.shadow.mapSize.set(1024, 1024);
