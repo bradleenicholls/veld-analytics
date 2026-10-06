@@ -56,10 +56,10 @@
   // turned up from before so the cube reads as consistently lit overall
   // — like it's floating in its own pool of light — rather than mostly
   // black with a few bright spots.
-  const ambient = new THREE.AmbientLight(0x9a9ea3, 1.3);
+  const ambient = new THREE.AmbientLight(0x9a9ea3, 0.5);
   scene.add(ambient);
 
-  const hemi = new THREE.HemisphereLight(0xaab0b8, 0x1c1e21, 1.3);
+  const hemi = new THREE.HemisphereLight(0xaab0b8, 0x1c1e21, 0.5);
   scene.add(hemi);
 
   // An actual THREE.SpotLight — a real cone of light with an angle,
@@ -72,7 +72,7 @@
   // tumbles, which is why it's surrounded by the several dimmer fill
   // lights below — those keep something lit at all times; this one is
   // the actual visible "spotlight" source.
-  const key = new THREE.SpotLight(0xffffff, 6.5, 22, THREE.MathUtils.degToRad(30), 0.5, 1);
+  const key = new THREE.SpotLight(0xffffff, 2.5, 22, THREE.MathUtils.degToRad(30), 0.5, 1);
   key.position.set(4, 6, 4);
   key.target.position.set(0, 0, 0);
   scene.add(key.target);
@@ -80,29 +80,29 @@
   key.shadow.mapSize.set(1024, 1024);
   scene.add(key);
 
-  const rimCoral = new THREE.PointLight(0xc7cdd4, 2.1, 16);
+  const rimCoral = new THREE.PointLight(0xc7cdd4, 0.8, 16);
   rimCoral.position.set(-3.2, 1.6, -2.4);
   scene.add(rimCoral);
 
-  const fillBlue = new THREE.PointLight(0xb4b9c0, 2, 16);
+  const fillBlue = new THREE.PointLight(0xb4b9c0, 0.75, 16);
   fillBlue.position.set(2.6, -1.2, 3.2);
   scene.add(fillBlue);
 
   // Soft front fill near the camera, so the faces actually facing the
   // viewer stay visible/readable rather than falling into shadow once
   // the cube's twist/tumble turns a dark side toward us.
-  const frontFill = new THREE.PointLight(0xc4c8cc, 2, 16);
+  const frontFill = new THREE.PointLight(0xc4c8cc, 0.75, 16);
   frontFill.position.set(BASE_CAM.x, BASE_CAM.y, BASE_CAM.z);
   scene.add(frontFill);
 
   // Two extra low-key lights from angles none of the others cover (top
   // and far side) — purely to keep a faint glint somewhere on the cube
   // at all times as it tumbles, not to add overall brightness.
-  const topFill = new THREE.PointLight(0xbfc3c8, 1.65, 16);
+  const topFill = new THREE.PointLight(0xbfc3c8, 0.6, 16);
   topFill.position.set(0, 4.2, 0.6);
   scene.add(topFill);
 
-  const farFill = new THREE.PointLight(0xb8bcc2, 1.55, 16);
+  const farFill = new THREE.PointLight(0xb8bcc2, 0.55, 16);
   farFill.position.set(-2.2, -2.6, 2.8);
   scene.add(farFill);
 
