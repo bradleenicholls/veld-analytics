@@ -65,7 +65,11 @@
   // Bumped up a little from 1.6 — reads as a spotlight catching the
   // cube (stronger highlight/contrast on the lit side) rather than the
   // flatter, uniformly-brighter look of raising the ambient/fill lights.
-  const key = new THREE.DirectionalLight(0xffffff, 1.9);
+  // Pushed up again — a brighter single key light reads as a spotlight
+  // catching the cube (strong highlight, still mostly-dark everywhere
+  // else), which holds up better across screen brightness settings than
+  // the flatter, evenly-lit look that raising ambient/fill gave it.
+  const key = new THREE.DirectionalLight(0xffffff, 2.4);
   key.position.set(4, 6, 4);
   key.castShadow = true;
   key.shadow.mapSize.set(1024, 1024);
@@ -220,8 +224,13 @@
         const kind = PATTERN_KINDS[Math.floor(seededRandom(seed) * PATTERN_KINDS.length)];
         const material = new THREE.MeshStandardMaterial({
           map: getTexture(kind),
-          metalness: 0.97,
-          roughness: kind === "glossy" ? 0.1 : kind === "plain" ? 0.14 : 0.22,
+          // Pushed to full metalness and tightened roughness further —
+          // lower roughness concentrates reflections into sharper,
+          // more mirror-like glints rather than a duller, broader
+          // sheen, which reads as "more metal" without just making
+          // everything brighter.
+          metalness: 1,
+          roughness: kind === "glossy" ? 0.06 : kind === "plain" ? 0.09 : 0.16,
         });
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(x * SPACING, y * SPACING, z * SPACING);
