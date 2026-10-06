@@ -62,22 +62,22 @@
   const hemi = new THREE.HemisphereLight(0xaab0b8, 0x1c1e21, 1.1);
   scene.add(hemi);
 
-  // A single bright key light only ever produces a specular glint when
-  // the cube happens to rotate a face into just the right angle — so
-  // the "reflecting light" would flare up then vanish for long stretches
-  // as it tumbles. Toning the key light back down and surrounding the
-  // cube with several dimmer lights from different angles instead means
-  // there's almost always a soft highlight catching somewhere on it —
-  // reads as "always on", and each individual source is subtler than
-  // the single big flare was.
-  const key = new THREE.DirectionalLight(0xffffff, 2.6);
+  // An actual THREE.SpotLight — a real cone of light with an angle,
+  // soft-edged penumbra and distance falloff, rather than the plain
+  // DirectionalLight (flat parallel rays, no cone, no falloff) this was
+  // using before. Positioned up and to the right of the cube so it
+  // reads as a spotlight shining down onto it, matching the direction
+  // of the CSS spotlight beam behind it. A single light still only
+  // produces a glint where it happens to catch a face as the cube
+  // tumbles, which is why it's surrounded by the several dimmer fill
+  // lights below — those keep something lit at all times; this one is
+  // the actual visible "spotlight" source.
+  const key = new THREE.SpotLight(0xffffff, 5.5, 22, THREE.MathUtils.degToRad(30), 0.5, 1);
   key.position.set(4, 6, 4);
+  key.target.position.set(0, 0, 0);
+  scene.add(key.target);
   key.castShadow = true;
   key.shadow.mapSize.set(1024, 1024);
-  key.shadow.camera.left = -4;
-  key.shadow.camera.right = 4;
-  key.shadow.camera.top = 4;
-  key.shadow.camera.bottom = -4;
   scene.add(key);
 
   const rimCoral = new THREE.PointLight(0xc7cdd4, 1.8, 16);
@@ -160,7 +160,7 @@
   // Rubik's cube panel reads as flat and sharp-edged, not soft.
   const geometry = createRoundedBoxGeometry(CUBE_SIZE, 0.025, 2);
 
-  const BASE_BLACK = "#050506"; // cube body — true black, no colour tint
+  const BASE_BLACK = "#121214"; // cube body — slightly lighter than true black, still reads as black
   const STEEL = "#2c2c2e"; // dark-grey pattern accents — no blue anywhere
   const STEEL_DARK = "#141416";
   const STEEL_LIGHT = "#47474a";
