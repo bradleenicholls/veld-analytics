@@ -160,7 +160,7 @@
   // Rubik's cube panel reads as flat and sharp-edged, not soft.
   const geometry = createRoundedBoxGeometry(CUBE_SIZE, 0.025, 2);
 
-  const BASE_BLACK = "#121214"; // cube body — slightly lighter than true black, still reads as black
+  const BASE_BLACK = "#2a2a2e"; // cube body — a noticeably lighter charcoal, still reads as black/dark
   const STEEL = "#2c2c2e"; // dark-grey pattern accents — no blue anywhere
   const STEEL_DARK = "#141416";
   const STEEL_LIGHT = "#47474a";
