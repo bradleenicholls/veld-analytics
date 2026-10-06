@@ -62,14 +62,15 @@
   const hemi = new THREE.HemisphereLight(0xaab0b8, 0x1c1e21, 0.7);
   scene.add(hemi);
 
-  // Bumped up a little from 1.6 — reads as a spotlight catching the
-  // cube (stronger highlight/contrast on the lit side) rather than the
-  // flatter, uniformly-brighter look of raising the ambient/fill lights.
-  // Pushed up again — a brighter single key light reads as a spotlight
-  // catching the cube (strong highlight, still mostly-dark everywhere
-  // else), which holds up better across screen brightness settings than
-  // the flatter, evenly-lit look that raising ambient/fill gave it.
-  const key = new THREE.DirectionalLight(0xffffff, 3);
+  // A single bright key light only ever produces a specular glint when
+  // the cube happens to rotate a face into just the right angle — so
+  // the "reflecting light" would flare up then vanish for long stretches
+  // as it tumbles. Toning the key light back down and surrounding the
+  // cube with several dimmer lights from different angles instead means
+  // there's almost always a soft highlight catching somewhere on it —
+  // reads as "always on", and each individual source is subtler than
+  // the single big flare was.
+  const key = new THREE.DirectionalLight(0xffffff, 1.7);
   key.position.set(4, 6, 4);
   key.castShadow = true;
   key.shadow.mapSize.set(1024, 1024);
@@ -79,20 +80,31 @@
   key.shadow.camera.bottom = -4;
   scene.add(key);
 
-  const rimCoral = new THREE.PointLight(0xc7cdd4, 1.5, 16);
+  const rimCoral = new THREE.PointLight(0xc7cdd4, 1.1, 16);
   rimCoral.position.set(-3.2, 1.6, -2.4);
   scene.add(rimCoral);
 
-  const fillBlue = new THREE.PointLight(0xb4b9c0, 1.3, 16);
+  const fillBlue = new THREE.PointLight(0xb4b9c0, 1, 16);
   fillBlue.position.set(2.6, -1.2, 3.2);
   scene.add(fillBlue);
 
   // Soft front fill near the camera, so the faces actually facing the
   // viewer stay visible/readable rather than falling into shadow once
   // the cube's twist/tumble turns a dark side toward us.
-  const frontFill = new THREE.PointLight(0xc4c8cc, 0.9, 16);
+  const frontFill = new THREE.PointLight(0xc4c8cc, 1, 16);
   frontFill.position.set(BASE_CAM.x, BASE_CAM.y, BASE_CAM.z);
   scene.add(frontFill);
+
+  // Two extra low-key lights from angles none of the others cover (top
+  // and far side) — purely to keep a faint glint somewhere on the cube
+  // at all times as it tumbles, not to add overall brightness.
+  const topFill = new THREE.PointLight(0xbfc3c8, 0.8, 16);
+  topFill.position.set(0, 4.2, 0.6);
+  scene.add(topFill);
+
+  const farFill = new THREE.PointLight(0xb8bcc2, 0.7, 16);
+  farFill.position.set(-2.2, -2.6, 2.8);
+  scene.add(farFill);
 
   // ---- Cubelets: 3x3x3 grid, flush against each other (no gaps) so it
   // reads as one solid cube rather than a scattered set of blocks.
