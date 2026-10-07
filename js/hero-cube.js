@@ -56,10 +56,56 @@
   // turned up from before so the cube reads as consistently lit overall
   // — like it's floating in its own pool of light — rather than mostly
   // black with a few bright spots.
-  const ambient = new THREE.AmbientLight(0x9a9ea3, 0.22);
+  // ---- Studio reflection map ----
+  // Why the cube kept swinging between "black void" and "washed-out
+  // grey": real polished metal doesn't get brighter from more lights, it
+  // shows whatever it REFLECTS. With nothing around it to reflect, it's
+  // black except for the one angle where a lamp bounces into the camera;
+  // lowering metalness to fix that just turned it into grey plastic.
+  // Product photographers solve this by surrounding black chrome with
+  // softboxes. This builds the same thing in code (no image files): a
+  // dark room containing a few bright panels, baked once into an
+  // environment map via PMREMGenerator. The cube stays black wherever it
+  // reflects the dark room and picks up bright streaks wherever it
+  // reflects a panel — and since there are several panels spread around,
+  // there's always some reflection visible on it as it tumbles.
+  try {
+    const envScene = new THREE.Scene();
+    const room = new THREE.Mesh(
+      new THREE.BoxGeometry(40, 40, 40),
+      new THREE.MeshBasicMaterial({ color: 0x020203, side: THREE.BackSide })
+    );
+    envScene.add(room);
+    const addPanel = (w, h, x, y, z, intensity, tint) => {
+      const colour = new THREE.Color(tint).multiplyScalar(intensity); // >1 = HDR brightness
+      const panel = new THREE.Mesh(
+        new THREE.PlaneGeometry(w, h),
+        new THREE.MeshBasicMaterial({ color: colour, side: THREE.DoubleSide })
+      );
+      panel.position.set(x, y, z);
+      panel.lookAt(0, 0, 0);
+      envScene.add(panel);
+    };
+    addPanel(9, 6, 8, 9, 5, 6, 0xffffff); // main softbox, upper right (same side as the CSS beam)
+    addPanel(2.5, 14, -10, 1, 2, 3.2, 0xe4ecff); // tall strip, left
+    addPanel(12, 12, 0, 13, 0, 1.8, 0xffffff); // overhead
+    addPanel(12, 2.5, -3, 3, -11, 3.5, 0xffffff); // rim strip behind
+    addPanel(10, 5, 4, -9, 3, 1.3, 0xffffff); // low floor-bounce panel
+    addPanel(8, 8, -5, 0, 11, 1.1, 0xffffff); // dim front fill so camera-facing sides keep a gradient
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmrem.fromScene(envScene, 0.03).texture;
+    pmrem.dispose();
+  } catch (err) {
+    // If the environment map can't be built, the direct lights below
+    // still light the cube — it just loses the always-on reflections.
+  }
+
+  // Direct lights are supporting cast now — the environment does the
+  // main work — so these are kept low.
+  const ambient = new THREE.AmbientLight(0x9a9ea3, 0.08);
   scene.add(ambient);
 
-  const hemi = new THREE.HemisphereLight(0xaab0b8, 0x1c1e21, 0.22);
+  const hemi = new THREE.HemisphereLight(0xaab0b8, 0x1c1e21, 0.08);
   scene.add(hemi);
 
   // An actual THREE.SpotLight — a real cone of light with an angle,
@@ -72,7 +118,7 @@
   // tumbles, which is why it's surrounded by the several dimmer fill
   // lights below — those keep something lit at all times; this one is
   // the actual visible "spotlight" source.
-  const key = new THREE.SpotLight(0xffffff, 1.1, 22, THREE.MathUtils.degToRad(30), 0.5, 1);
+  const key = new THREE.SpotLight(0xffffff, 1.6, 22, THREE.MathUtils.degToRad(30), 0.5, 1);
   key.position.set(4, 6, 4);
   key.target.position.set(0, 0, 0);
   scene.add(key.target);
@@ -160,10 +206,16 @@
   // Rubik's cube panel reads as flat and sharp-edged, not soft.
   const geometry = createRoundedBoxGeometry(CUBE_SIZE, 0.025, 2);
 
-  const BASE_BLACK = "#2a2a2e"; // cube body — a noticeably lighter charcoal, still reads as black/dark
-  const STEEL = "#2c2c2e"; // dark-grey pattern accents — no blue anywhere
-  const STEEL_DARK = "#141416";
-  const STEEL_LIGHT = "#47474a";
+  // For a metal, the base colour is its REFLECTIVITY, not how dark it
+  // looks: the near-black values used before meant it only reflected
+  // ~2% of whatever was around it, so it stayed dark no matter what
+  // lighting was added. A mid-grey gunmetal reflects enough to show the
+  // studio environment above, and still reads black wherever that
+  // environment is dark. Neutral grey throughout — no blue.
+  const BASE_METAL = "#76767b";
+  const STEEL = "#58585d"; // pattern accents, relative to the base above
+  const STEEL_DARK = "#2a2a2e";
+  const STEEL_LIGHT = "#9c9ca1";
 
   function seededRandom(seed) {
     const x = Math.sin(seed) * 10000;
@@ -184,7 +236,7 @@
     const c = document.createElement("canvas");
     c.width = c.height = size;
     const ctx = c.getContext("2d");
-    ctx.fillStyle = BASE_BLACK;
+    ctx.fillStyle = BASE_METAL;
     ctx.fillRect(0, 0, size, size);
 
     if (kind === "perforated") {
@@ -236,17 +288,23 @@
         const kind = PATTERN_KINDS[Math.floor(seededRandom(seed) * PATTERN_KINDS.length)];
         const material = new THREE.MeshStandardMaterial({
           map: getTexture(kind),
-          // Metalness brought down meaningfully (was 0.92) so the
-          // material actually has a diffuse response — pure/near-pure
-          // metal only lights up where a light bounces straight into
-          // the camera, which is why it kept reading as "only visible
-          // via the reflecting light" no matter how bright the lights
-          // got. Roughness kept low (not raised to match) so it still
-          // holds a crisp, defined highlight rather than the soft,
-          // flat "plastic" look — more brushed/satin metal than a
-          // mirror finish, but consistently lit from any angle now.
-          metalness: 0.62,
-          roughness: kind === "glossy" ? 0.09 : kind === "plain" ? 0.12 : 0.19,
+          // Back to near-full metalness — the studio reflection map
+          // above is what keeps it visible now, so there's no need to
+          // trade away the metal look (lower metalness is what turned
+          // it into grey plastic). Roughness is a touch higher than the
+          // mirror-sharp values from earlier so the reflected panels
+          // read as broad soft streaks across the faces, which show up
+          // at far more angles than a tight mirror glint does.
+          metalness: 0.96,
+          roughness: kind === "glossy" ? 0.16 : kind === "plain" ? 0.24 : 0.32,
+          envMapIntensity: 1,
+          // Multiplies the texture colour down so overall reflectivity
+          // lands on dark gunmetal rather than bright silver (tuned by
+          // eye in a live render: 1.0 read as aluminium, ~0.4 reads as
+          // black metal with visible reflections). This is the single
+          // dial for "how light is the cube" — lower = darker/blacker,
+          // higher = more silver.
+          color: new THREE.Color(0.4, 0.4, 0.4),
         });
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(x * SPACING, y * SPACING, z * SPACING);
