@@ -551,6 +551,14 @@ hr.rule {
   text-align: left;
   max-width: 700px;
 }
+/* Separate headline/subline wording for phones (see the paired
+   .hero-copy-desktop / .hero-copy-mobile spans in index.html). Only one
+   of each pair is ever displayed, so screen readers read just one. */
+.hero-copy-mobile { display: none; }
+@media (max-width: 640px) {
+  .hero-copy-desktop { display: none; }
+  .hero-copy-mobile { display: inline; }
+}
 .hero-stack-copy h1 {
   font-size: clamp(3rem, 6.4vw, 5.4rem);
 }
