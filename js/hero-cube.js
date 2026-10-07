@@ -297,14 +297,14 @@
           // at far more angles than a tight mirror glint does.
           metalness: 0.96,
           roughness: kind === "glossy" ? 0.16 : kind === "plain" ? 0.24 : 0.32,
-          envMapIntensity: 1,
+          envMapIntensity: 0.88, // slightly less reflective (was 1)
           // Multiplies the texture colour down so overall reflectivity
           // lands on dark gunmetal rather than bright silver (tuned by
           // eye in a live render: 1.0 read as aluminium, ~0.3-0.4 reads as
           // black metal with visible reflections). This is the single
           // dial for "how light is the cube" — lower = darker/blacker,
           // higher = more silver.
-          color: new THREE.Color(0.4, 0.4, 0.4),
+          color: new THREE.Color(0.35, 0.35, 0.35),
         });
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(x * SPACING, y * SPACING, z * SPACING);
