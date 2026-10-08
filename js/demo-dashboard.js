@@ -817,7 +817,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Deterministic "previous period" series derived from the current one.
   function makePrev(trend) {
-    return trend.map((v, i) => v * (0.8 + 0.09 * Math.sin(i * 1.35 + 0.8) - 0.012 * i / Math.max(1, trend.length)));
+    const n = trend.length;
+    return trend.map((v, i) => {
+      const t = n === 1 ? 0 : i / (n - 1);
+      // Slow swing that crosses above and below the current series.
+      return v * (1 + 0.11 * Math.sin(t * Math.PI * 2.2 + 0.9) - 0.01);
+    });
   }
 
   // Expand a handful of anchor values into one value per day (smooth between
@@ -1163,9 +1168,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!xAxisEl) return;
     const idx = [];
     currentLabels.forEach((l, i) => { if (l) idx.push(i); });
-    const want = Math.min(idx.length, 6);
     const picks = [];
-    for (let k = 0; k < want; k++) picks.push(idx[Math.round((k * (idx.length - 1)) / Math.max(1, want - 1))]);
+    if (idx.length <= 7) {
+      const narrow = stageEl && stageEl.getBoundingClientRect().width < 520;
+      idx.forEach((i, k) => { if (!narrow || k % 2 === 0) picks.push(i); });
+    } else {
+      const want = 6;
+      for (let k = 0; k < want; k++) picks.push(idx[Math.round((k * (idx.length - 1)) / (want - 1))]);
+    }
     xAxisEl.innerHTML = "";
     tickEls = [];
     [...new Set(picks)].forEach((i) => {
