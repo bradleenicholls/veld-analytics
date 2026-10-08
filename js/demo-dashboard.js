@@ -1185,10 +1185,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const stat = data.stats[i];
       if (!label || !num || !delta || !stat) return;
       label.textContent = stat.label;
-      num.textContent = stat.value;
+      countTo(num, stat.value);
       delta.textContent = (stat.dir === "up" ? "▲ " : "▼ ") + stat.delta;
       delta.classList.remove("up", "down");
       delta.classList.add(stat.dir);
+      drawSpark(i, stat, data);
     });
 
     const smoothed = smoothPath(currentPoints);
@@ -1339,6 +1340,80 @@ document.addEventListener("DOMContentLoaded", () => {
       tooltip.style.left = svgRect.left - wrapRect.left + px + "px";
       tooltip.style.top = svgRect.top - wrapRect.top + (yCur / VB_H) * svgRect.height + "px";
     }
+  }
+
+  // ---- KPI cards: count-up numbers + sparklines ----
+  const sparkEls = [];
+  statEls.forEach(({ num }, i) => {
+    const card = num && num.closest(".demo-stat");
+    if (!card) return;
+    const NS = "http://www.w3.org/2000/svg";
+    const svgEl = document.createElementNS(NS, "svg");
+    svgEl.setAttribute("class", "spark");
+    svgEl.setAttribute("viewBox", "0 0 100 40");
+    svgEl.setAttribute("preserveAspectRatio", "none");
+    svgEl.setAttribute("aria-hidden", "true");
+    svgEl.innerHTML =
+      `<defs><linearGradient id="sparkFill${i}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#82A7FF" stop-opacity="0.35"/><stop offset="100%" stop-color="#82A7FF" stop-opacity="0"/></linearGradient>` +
+      `<linearGradient id="sparkEdge${i}" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#fff" stop-opacity="0"/><stop offset="35%" stop-color="#fff" stop-opacity="1"/></linearGradient>` +
+      `<mask id="sparkMask${i}"><rect width="100" height="40" fill="url(#sparkEdge${i})"/></mask></defs>` +
+      `<g mask="url(#sparkMask${i})"><path class="spark-area" fill="url(#sparkFill${i})"/><path class="spark-line"/></g>`;
+    card.appendChild(svgEl);
+    sparkEls[i] = svgEl;
+  });
+
+  function sparkSeries(i, stat, data) {
+    const key = stat.label.toLowerCase();
+    if (data.metrics && data.metrics[key]) return data.metrics[key].slice();
+    const n = 24;
+    const seed = i * 1.7 + (parseInt(currentRange, 10) || 7) * 0.13;
+    return Array.from({ length: n }, (_, k) => {
+      const t = k / (n - 1);
+      const trend = stat.dir === "down" ? 1 - 0.4 * t : 0.35 + 0.65 * t;
+      return trend + 0.12 * Math.sin(k * 0.9 + seed) + 0.07 * Math.sin(k * 2.3 + seed * 2);
+    });
+  }
+
+  function drawSpark(i, stat, data) {
+    const el = sparkEls[i];
+    if (!el) return;
+    const ser = sparkSeries(i, stat, data);
+    const mn = Math.min(...ser), mx = Math.max(...ser), rg = mx - mn || 1;
+    const pts = ser.map((v, k) => ({ x: (k / (ser.length - 1)) * 100, y: 36 - ((v - mn) / rg) * 30 }));
+    const d = smoothPath(pts);
+    el.querySelector(".spark-line").setAttribute("d", d);
+    el.querySelector(".spark-area").setAttribute("d", `${d} L100,40 L0,40 Z`);
+    el.classList.remove("in");
+    void el.getBoundingClientRect();
+    el.classList.add("in");
+  }
+
+  const countTimers = new WeakMap();
+  function parseStat(str) {
+    const m = String(str).match(/^([^0-9-]*)(-?[\d,]*\.?\d+)(.*)$/);
+    if (!m) return null;
+    const dec = (m[2].split(".")[1] || "").length;
+    return { pre: m[1], num: parseFloat(m[2].replace(/,/g, "")), dec, suf: m[3], commas: m[2].includes(",") };
+  }
+  function fmtStat(p, v) {
+    let t = v.toFixed(p.dec);
+    if (p.commas || Math.abs(v) >= 1000) t = Number(t).toLocaleString("en-GB", { minimumFractionDigits: p.dec, maximumFractionDigits: p.dec });
+    return p.pre + t + p.suf;
+  }
+  function countTo(el, target) {
+    if (el.textContent === target) return;
+    const prev = countTimers.get(el);
+    if (prev) cancelAnimationFrame(prev);
+    const to = parseStat(target), from = parseStat(el.textContent);
+    if (reduceMotion || !to || !from) { el.textContent = target; return; }
+    const t0 = performance.now(), dur = 750;
+    const step = (now) => {
+      const k = Math.min(1, (now - t0) / dur);
+      const e = 1 - Math.pow(1 - k, 3);
+      el.textContent = k >= 1 ? target : fmtStat(to, from.num + (to.num - from.num) * e);
+      if (k < 1) countTimers.set(el, requestAnimationFrame(step));
+    };
+    countTimers.set(el, requestAnimationFrame(step));
   }
 
   function hideTooltip() {
