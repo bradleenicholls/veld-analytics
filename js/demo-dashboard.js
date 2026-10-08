@@ -819,14 +819,28 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Monotone cubic (Fritsch-Carlson), same family as d3 curveMonotoneX.
   function smoothPath(points) {
-    if (!points.length) return "";
+    const n = points.length;
+    if (!n) return "";
+    if (n < 3) return "M" + points.map((p) => `${p.x},${p.y}`).join(" L");
+    const dx = [], m = [], t = new Array(n);
+    for (let i = 0; i < n - 1; i++) {
+      dx[i] = points[i + 1].x - points[i].x || 1e-6;
+      m[i] = (points[i + 1].y - points[i].y) / dx[i];
+    }
+    t[0] = m[0];
+    t[n - 1] = m[n - 2];
+    for (let i = 1; i < n - 1; i++) t[i] = m[i - 1] * m[i] <= 0 ? 0 : (m[i - 1] + m[i]) / 2;
+    for (let i = 0; i < n - 1; i++) {
+      if (m[i] === 0) { t[i] = 0; t[i + 1] = 0; continue; }
+      const a = t[i] / m[i], b = t[i + 1] / m[i], h = a * a + b * b;
+      if (h > 9) { const k = 3 / Math.sqrt(h); t[i] = k * a * m[i]; t[i + 1] = k * b * m[i]; }
+    }
     let d = `M${points[0].x},${points[0].y}`;
-    for (let i = 0; i < points.length - 1; i++) {
-      const p0 = points[i];
-      const p1 = points[i + 1];
-      const mx = (p0.x + p1.x) / 2;
-      d += ` C${mx},${p0.y} ${mx},${p1.y} ${p1.x},${p1.y}`;
+    for (let i = 0; i < n - 1; i++) {
+      const w = dx[i] / 3;
+      d += ` C${points[i].x + w},${points[i].y + t[i] * w} ${points[i + 1].x - w},${points[i + 1].y - t[i + 1] * w} ${points[i + 1].x},${points[i + 1].y}`;
     }
     return d;
   }
@@ -1041,9 +1055,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const floorY = PAD_TOP + CHART_H;
     areaPath.setAttribute("d", `${smoothed} L${last.x},${floorY} L${first.x},${floorY} Z`);
 
+    // Replay the left-to-right clip reveal.
+    const reveal = root.querySelector("#demo-chart-reveal");
+    if (reveal) {
+      reveal.classList.remove("replay");
+      void reveal.getBoundingClientRect();
+      reveal.classList.add("replay");
+    }
+
     if (dotsGroup) {
       dotsGroup.innerHTML = "";
-      currentPoints.forEach((p) => {
+      if (false) currentPoints.forEach((p) => {
         const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         c.setAttribute("cx", p.x);
         c.setAttribute("cy", p.y);
