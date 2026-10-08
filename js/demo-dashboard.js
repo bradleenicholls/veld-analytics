@@ -820,6 +820,25 @@ document.addEventListener("DOMContentLoaded", () => {
     return trend.map((v, i) => v * (0.8 + 0.09 * Math.sin(i * 1.35 + 0.8) - 0.012 * i / Math.max(1, trend.length)));
   }
 
+  // Expand a handful of anchor values into one value per day (smooth between
+  // anchors, plus a little deterministic wobble that is zero at each anchor).
+  function expandTrend(anchors, days) {
+    const n = anchors.length;
+    if (days <= n || n < 2) return anchors;
+    const range = Math.max(...anchors) - Math.min(...anchors) || 1;
+    const big = Math.max(...anchors) > 50;
+    return Array.from({ length: days }, (_, i) => {
+      const pos = (i / (days - 1)) * (n - 1);
+      const lo = Math.min(Math.floor(pos), n - 2);
+      const f = pos - lo;
+      const e = f * f * (3 - 2 * f);
+      const base = anchors[lo] + (anchors[lo + 1] - anchors[lo]) * e;
+      const wob = (Math.sin(i * 2.7) * 0.6 + Math.sin(i * 1.1 + 2) * 0.4) * range * 0.045 * Math.sin(Math.PI * f);
+      const v = base + wob;
+      return big ? Math.round(v) : Math.round(v * 100) / 100;
+    });
+  }
+
   function buildPoints(trend, prev) {
     const all = trend.concat(prev || []);
     const min = Math.min(...all);
@@ -1005,7 +1024,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function render() {
     const isFullType = currentType !== "social";
-    const { data, trend, chartLabel: chartLbl, breakdownLabel: breakdownLbl, unit } = activeRangeData();
+    const { data, trend: baseTrend, chartLabel: chartLbl, breakdownLabel: breakdownLbl, unit } = activeRangeData();
+    const trend = expandTrend(baseTrend, parseInt(currentRange, 10) || baseTrend.length);
     if (!data) return;
     const built = buildPoints(trend, makePrev(trend));
     currentPoints = built.cur;
@@ -1021,10 +1041,8 @@ document.addEventListener("DOMContentLoaded", () => {
         d.setDate(d.getDate() - back);
         return d;
       });
-      currentLabels = dates.map((d) => d.toLocaleDateString("en-GB", { day: "numeric", month: "short" }));
-      currentFull = dates.map((d) =>
-        d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })
-      );
+      currentLabels = dates.map((d) => d.toLocaleDateString("en-US", { month: "short", day: "numeric" }));
+      currentFull = currentLabels;
     }
 
     typeToggle.querySelectorAll("button").forEach((btn) => {
@@ -1184,7 +1202,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!hoverActive) return;
     const dt = Math.min(0.05, (t - lastT) / 1000 || 0.016);
     lastT = t;
-    cx += (tx - cx) * (1 - Math.exp(-dt * 20));
+    cx += (tx - cx) * (1 - Math.exp(-dt * 14));
     if (Math.abs(tx - cx) < 0.05) cx = tx;
     paintHover();
     if (cx !== tx) raf = requestAnimationFrame(frame);
@@ -1258,7 +1276,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const prevPt = currentPrev[nearestIdx];
     const first = !hoverActive;
     hoverActive = true;
-    tx = nearest.x;
+    tx = Math.min(Math.max(x, 0), VB_W);
     if (first) cx = tx;
 
     if (nearestIdx !== hoverIdx || first) {
