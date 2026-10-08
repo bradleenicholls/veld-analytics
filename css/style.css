@@ -2094,3 +2094,29 @@ body { perspective: none; }
 .demo-tooltip .row.prev .val { color: var(--text-muted); }
 .demo-tooltip .row .k { color: var(--text-faint); margin-right: auto; padding-right: 14px; }
 @media (prefers-reduced-motion: reduce) { .demo-pill, .demo-tooltip { transition: opacity 0.15s linear; } }
+
+/* ---- Bklit-style stacked bar chart ---- */
+.demo-sb-stage { position: relative; cursor: crosshair; }
+#demo-stackbar-labels { display: none; }
+#demo-stackbar-grid line { stroke: url(#sbEdgeFade); stroke-width: 1; stroke-dasharray: 4 4; }
+.demo-sb-stage .sb-bar {
+  transform-box: fill-box; transform-origin: 50% 100%;
+  animation: sbGrow 0.95s cubic-bezier(0.85, 0, 0.15, 1) both;
+  transition: opacity 0.2s var(--ease);
+}
+@keyframes sbGrow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+.demo-sb-stage.is-hover .sb-bar { opacity: 0.3; }
+.demo-sb-stage.is-hover .sb-bar.on { opacity: 1; }
+.demo-stackbar-wrap .sb-bar path { transition: none; }
+.demo-sb-axis { position: absolute; left: 0; right: 0; bottom: 0; height: 10.77%; pointer-events: none; }
+.demo-sb-axis span {
+  position: absolute; top: 50%; transform: translate(-50%, -50%);
+  font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.04em;
+  color: var(--text-faint); white-space: nowrap; transition: color 0.15s var(--ease);
+}
+.demo-sb-axis span.on { color: var(--text); }
+.demo-sb-tip { top: 0; transform: translate(-50%, 0); z-index: 5; }
+.demo-sb-tip .row .k { padding-right: 18px; }
+.demo-sb-tip .row .tot { color: var(--text); }
+.demo-sb-tip .row i { border-radius: 2px; }
+@media (prefers-reduced-motion: reduce) { .demo-sb-stage .sb-bar { animation: none; } }

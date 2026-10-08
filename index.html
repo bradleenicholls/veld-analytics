@@ -267,10 +267,23 @@
       <div id="demo-stackbar-section">
         <div class="demo-breakdown-label" id="demo-stackbar-title">First user channel group, by month</div>
         <div class="demo-stackbar-wrap">
+          <div class="demo-sb-stage" id="demo-sb-stage">
           <svg id="demo-stackbar" viewBox="0 0 900 260" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="sbEdgeFade" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="900" y2="0">
+                <stop offset="0%" stop-color="#fff" stop-opacity="0"/>
+                <stop offset="14%" stop-color="#fff" stop-opacity="0.16"/>
+                <stop offset="86%" stop-color="#fff" stop-opacity="0.16"/>
+                <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <g id="demo-stackbar-grid"></g>
             <g id="demo-stackbar-bars"></g>
             <g id="demo-stackbar-labels"></g>
           </svg>
+          <div class="demo-sb-axis" id="demo-sb-axis" aria-hidden="true"></div>
+          <div class="demo-tooltip demo-sb-tip" id="demo-sb-tip"></div>
+          </div>
           <div class="demo-stackbar-legend" id="demo-stackbar-legend"></div>
         </div>
       </div>

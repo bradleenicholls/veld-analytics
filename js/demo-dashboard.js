@@ -963,61 +963,136 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // ---- Stacked bar chart (Bklit-style): grow-in, dashed faded grid, rounded
+  // top caps, hover fades the other bars, spring-eased tooltip. ----
+  const sbStage = root.querySelector("#demo-sb-stage");
+  const sbAxis = root.querySelector("#demo-sb-axis");
+  const sbTip = root.querySelector("#demo-sb-tip");
+  const sbGrid = root.querySelector("#demo-stackbar-grid");
+  let sbData = null, sbCenters = [], sbHover = -1;
+  let sbTx = 0, sbCx = 0, sbRaf = 0, sbLast = 0;
+
+  function sbHide() {
+    sbHover = -1;
+    if (sbRaf) cancelAnimationFrame(sbRaf);
+    sbRaf = 0;
+    if (!sbStage) return;
+    sbStage.classList.remove("is-hover");
+    sbStage.querySelectorAll(".sb-bar.on").forEach((r) => r.classList.remove("on"));
+    if (sbAxis) sbAxis.querySelectorAll("span.on").forEach((t) => t.classList.remove("on"));
+    if (sbTip) sbTip.classList.remove("visible");
+  }
+
+  function sbFrame(t) {
+    sbRaf = 0;
+    if (sbHover < 0) return;
+    const dt = Math.min(0.05, (t - sbLast) / 1000 || 0.016);
+    sbLast = t;
+    sbCx += (sbTx - sbCx) * (1 - Math.exp(-dt * 16));
+    if (Math.abs(sbTx - sbCx) < 0.3) sbCx = sbTx;
+    sbTip.style.left = sbCx + "px";
+    if (sbCx !== sbTx) sbRaf = requestAnimationFrame(sbFrame);
+  }
+
+  function sbMove(clientX) {
+    if (!sbData || !sbCenters.length) return;
+    const r = sbStage.getBoundingClientRect();
+    const fx = (clientX - r.left) / r.width;
+    let mi = 0, best = Infinity;
+    sbCenters.forEach((c, i) => { const d = Math.abs(c - fx); if (d < best) { best = d; mi = i; } });
+    const first = sbHover < 0;
+    if (mi !== sbHover) {
+      sbHover = mi;
+      sbStage.classList.add("is-hover");
+      sbStage.querySelectorAll(".sb-bar").forEach((g) => g.classList.toggle("on", g.dataset.mi === String(mi)));
+      sbAxis.querySelectorAll("span").forEach((t, i) => t.classList.toggle("on", i === mi));
+      const total = sbData.series.reduce((a, s) => a + s.values[mi], 0);
+      sbTip.innerHTML =
+        `<div class="row"><span class="k">${sbData.months[mi]}</span></div>` +
+        sbData.series
+          .map((s, si) => `<div class="row"><i style="background:${PIE_COLORS[si % PIE_COLORS.length]}"></i><span class="k">${s.name}</span><span class="val">${s.values[mi].toLocaleString("en-GB")}</span></div>`)
+          .join("") +
+        `<div class="row"><span class="k">Total</span><span class="val tot">${total.toLocaleString("en-GB")}</span></div>`;
+      sbTip.classList.add("visible");
+    }
+    const tw = sbTip.offsetWidth / 2;
+    sbTx = Math.min(Math.max(sbCenters[mi] * r.width, tw), r.width - tw);
+    if (first) { sbCx = sbTx; sbTip.style.left = sbCx + "px"; }
+    if (!sbRaf) { sbLast = performance.now(); sbRaf = requestAnimationFrame(sbFrame); }
+  }
+
+  if (sbStage) {
+    sbStage.addEventListener("mousemove", (e) => sbMove(e.clientX));
+    sbStage.addEventListener("mouseleave", sbHide);
+    sbStage.addEventListener("touchmove", (e) => { if (e.touches[0]) sbMove(e.touches[0].clientX); }, { passive: true });
+    sbStage.addEventListener("touchend", sbHide);
+  }
+
   function renderStackbar(monthsData) {
-    if (!stackbarBars || !stackbarLabels || !stackbarLegend) return;
+    if (!stackbarBars || !stackbarLegend) return;
     stackbarBars.innerHTML = "";
-    stackbarLabels.innerHTML = "";
     stackbarLegend.innerHTML = "";
+    if (sbGrid) sbGrid.innerHTML = "";
 
     const { months, series } = monthsData;
+    sbData = { months, series };
     const totals = months.map((_, mi) => series.reduce((sum, s) => sum + s.values[mi], 0));
-    const maxTotal = Math.max(...totals);
+    const maxTotal = Math.max(...totals) * 1.08;
 
-    const svgW = 900,
-      svgH = 260,
-      padTop = 10,
-      padBottom = 28,
-      barAreaH = svgH - padTop - padBottom;
+    const NS = "http://www.w3.org/2000/svg";
+    const svgW = 900, svgH = 260, padTop = 10, padBottom = 28;
+    const barAreaH = svgH - padTop - padBottom;
+    const floor = padTop + barAreaH;
     const n = months.length;
-    const gap = 28;
-    const barW = (svgW - gap * (n + 1)) / n;
+    const slot = svgW / n;
+    const barW = Math.min(slot * 0.62, 90);
+    const stackGap = 2;
+    const R = 7;
 
+    if (sbGrid) {
+      for (let g = 0; g <= 4; g++) {
+        const y = padTop + (barAreaH * g) / 4;
+        const ln = document.createElementNS(NS, "line");
+        ln.setAttribute("x1", "0"); ln.setAttribute("x2", String(svgW));
+        ln.setAttribute("y1", String(y)); ln.setAttribute("y2", String(y));
+        sbGrid.appendChild(ln);
+      }
+    }
+
+    sbCenters = [];
     months.forEach((m, mi) => {
-      const x = gap + mi * (barW + gap);
-      let yCursor = padTop + barAreaH;
-      series.forEach((s, si) => {
-        const val = s.values[mi];
-        const h = (val / maxTotal) * barAreaH;
-        const y = yCursor - h;
-        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        rect.setAttribute("x", String(x));
-        rect.setAttribute("width", String(barW));
-        rect.setAttribute("fill", PIE_COLORS[si % PIE_COLORS.length]);
-        rect.setAttribute("rx", "2");
-        if (reduceMotion) {
-          rect.setAttribute("y", String(y));
-          rect.setAttribute("height", String(h));
-        } else {
-          rect.setAttribute("y", String(yCursor));
-          rect.setAttribute("height", "0");
-        }
-        stackbarBars.appendChild(rect);
-        if (!reduceMotion) {
-          requestAnimationFrame(() => {
-            rect.setAttribute("y", String(y));
-            rect.setAttribute("height", String(h));
-          });
-        }
-        yCursor = y;
-      });
+      const cxm = slot * mi + slot / 2;
+      sbCenters.push(cxm / svgW);
+      const x = cxm - barW / 2;
+      const grp = document.createElementNS(NS, "g");
+      grp.setAttribute("class", "sb-bar");
+      grp.dataset.mi = String(mi);
+      grp.style.animationDelay = (mi * 0.07).toFixed(2) + "s";
+      if (reduceMotion) grp.style.animation = "none";
 
-      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      text.setAttribute("x", String(x + barW / 2));
-      text.setAttribute("y", String(svgH - 8));
-      text.setAttribute("text-anchor", "middle");
-      text.textContent = m;
-      stackbarLabels.appendChild(text);
+      let yCursor = floor;
+      const segs = series.map((s, si) => ({ si, h: (s.values[mi] / maxTotal) * barAreaH }));
+      segs.forEach((seg, k) => {
+        const isTop = k === segs.length - 1;
+        const h = Math.max(0, seg.h - (isTop ? 0 : stackGap));
+        const y = yCursor - h;
+        const r = isTop ? Math.min(R, h / 2, barW / 2) : 0;
+        const d = `M${x},${y + h} L${x},${y + r} Q${x},${y} ${x + r},${y} L${x + barW - r},${y} Q${x + barW},${y} ${x + barW},${y + r} L${x + barW},${y + h} Z`;
+        const path = document.createElementNS(NS, "path");
+        path.setAttribute("d", d);
+        path.setAttribute("fill", PIE_COLORS[seg.si % PIE_COLORS.length]);
+        grp.appendChild(path);
+        yCursor = y - (isTop ? 0 : stackGap);
+      });
+      stackbarBars.appendChild(grp);
     });
+
+    if (sbAxis) {
+      sbAxis.innerHTML = months
+        .map((m, mi) => `<span style="left:${sbCenters[mi] * 100}%">${m}</span>`)
+        .join("");
+    }
+    sbHide();
 
     series.forEach((s, si) => {
       const row = document.createElement("div");
