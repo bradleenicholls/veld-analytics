@@ -969,7 +969,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const sbAxis = root.querySelector("#demo-sb-axis");
   const sbTip = root.querySelector("#demo-sb-tip");
   const sbGrid = root.querySelector("#demo-stackbar-grid");
-  let sbData = null, sbCenters = [], sbHover = -1;
+  let sbData = null, sbCenters = [], sbHover = -1, sbColors = [];
   let sbTx = 0, sbCx = 0, sbRaf = 0, sbLast = 0;
 
   function sbHide() {
@@ -1006,13 +1006,13 @@ document.addEventListener("DOMContentLoaded", () => {
       sbStage.classList.add("is-hover");
       sbStage.querySelectorAll(".sb-bar").forEach((g) => g.classList.toggle("on", g.dataset.mi === String(mi)));
       sbAxis.querySelectorAll("span").forEach((t, i) => t.classList.toggle("on", i === mi));
-      const total = sbData.series.reduce((a, s) => a + s.values[mi], 0);
+      const uVal = sbData.series[0].values[mi], cVal = sbData.series[1].values[mi];
       sbTip.innerHTML =
         `<div class="row"><span class="k">${sbData.months[mi]}</span></div>` +
         sbData.series
-          .map((s, si) => `<div class="row"><i style="background:${PIE_COLORS[si % PIE_COLORS.length]}"></i><span class="k">${s.name}</span><span class="val">${s.values[mi].toLocaleString("en-GB")}</span></div>`)
+          .map((sr, si) => `<div class="row"><i style="background:${sbColors[si]}"></i><span class="k">${sr.name}</span><span class="val">${sr.values[mi].toLocaleString("en-GB")}</span></div>`)
           .join("") +
-        `<div class="row"><span class="k">Total</span><span class="val tot">${total.toLocaleString("en-GB")}</span></div>`;
+        `<div class="row"><span class="k">Conv. rate</span><span class="val tot">${((cVal / uVal) * 100).toFixed(1)}%</span></div>`;
       sbTip.classList.add("visible");
     }
     const tw = sbTip.offsetWidth / 2;
@@ -1033,11 +1033,24 @@ document.addEventListener("DOMContentLoaded", () => {
     stackbarBars.innerHTML = "";
     stackbarLegend.innerHTML = "";
     if (sbGrid) sbGrid.innerHTML = "";
+    if (stackbarTitleEl) stackbarTitleEl.textContent = "Users vs conversions, by month";
 
-    const { months, series } = monthsData;
+    // Users vs Conversions per month. Built from the month totals, with each
+    // series given its own rhythm; conversions sit below users but close in
+    // on it some months (deterministic so the tooltip matches the bars).
+    const months = monthsData.months;
+    const baseTotals = months.map((_, mi) => monthsData.series.reduce((sum, sr) => sum + sr.values[mi], 0));
+    const users = baseTotals.map((t, mi) => Math.round(t * (1 + 0.3 * Math.sin(mi * 1.9 + 0.7) + 0.1 * Math.sin(mi * 4.1))));
+    const ratios = months.map((_, mi) => 0.5 + 0.3 * (0.5 + 0.5 * Math.sin(mi * 2.3 + 1.1)));
+    const conv = users.map((u, mi) => Math.round(u * ratios[mi]));
+    const series = [
+      { name: "Users", values: users },
+      { name: "Conversions", values: conv },
+    ];
     sbData = { months, series };
-    const totals = months.map((_, mi) => series.reduce((sum, s) => sum + s.values[mi], 0));
-    const maxTotal = Math.max(...totals) * 1.08;
+    const colors = ["#82A7FF", "#DFF7FF"];
+    sbColors = colors;
+    const maxTotal = Math.max(...users) * 1.08;
 
     const NS = "http://www.w3.org/2000/svg";
     const svgW = 900, svgH = 260, padTop = 10, padBottom = 28;
@@ -1045,9 +1058,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const floor = padTop + barAreaH;
     const n = months.length;
     const slot = svgW / n;
-    const barW = Math.min(slot * 0.62, 90);
-    const stackGap = 2;
-    const R = 7;
+    const groupW = Math.min(slot * 0.78, 130);
+    const inner = 3;
+    const barW = (groupW - inner) / 2;
 
     if (sbGrid) {
       for (let g = 0; g <= 4; g++) {
@@ -1063,26 +1076,20 @@ document.addEventListener("DOMContentLoaded", () => {
     months.forEach((m, mi) => {
       const cxm = slot * mi + slot / 2;
       sbCenters.push(cxm / svgW);
-      const x = cxm - barW / 2;
       const grp = document.createElementNS(NS, "g");
       grp.setAttribute("class", "sb-bar");
       grp.dataset.mi = String(mi);
       grp.style.animationDelay = (mi * 0.07).toFixed(2) + "s";
       if (reduceMotion) grp.style.animation = "none";
-
-      let yCursor = floor;
-      const segs = series.map((s, si) => ({ si, h: (s.values[mi] / maxTotal) * barAreaH }));
-      segs.forEach((seg, k) => {
-        const isTop = k === segs.length - 1;
-        const h = Math.max(0, seg.h - (isTop ? 0 : stackGap));
-        const y = yCursor - h;
-        const r = isTop ? Math.min(R, h / 2, barW / 2) : 0;
-        const d = `M${x},${y + h} L${x},${y + r} Q${x},${y} ${x + r},${y} L${x + barW - r},${y} Q${x + barW},${y} ${x + barW},${y + r} L${x + barW},${y + h} Z`;
+      series.forEach((sr, si) => {
+        const h = (sr.values[mi] / maxTotal) * barAreaH;
+        const x = cxm - groupW / 2 + si * (barW + inner);
+        const y = floor - h;
+        const r = Math.min(8, barW / 2, h / 2);
         const path = document.createElementNS(NS, "path");
-        path.setAttribute("d", d);
-        path.setAttribute("fill", PIE_COLORS[seg.si % PIE_COLORS.length]);
+        path.setAttribute("d", `M${x},${floor} L${x},${y + r} Q${x},${y} ${x + r},${y} L${x + barW - r},${y} Q${x + barW},${y} ${x + barW},${y + r} L${x + barW},${floor} Z`);
+        path.setAttribute("fill", colors[si]);
         grp.appendChild(path);
-        yCursor = y - (isTop ? 0 : stackGap);
       });
       stackbarBars.appendChild(grp);
     });
@@ -1094,10 +1101,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     sbHide();
 
-    series.forEach((s, si) => {
+    series.forEach((sr, si) => {
       const row = document.createElement("div");
       row.className = "row";
-      row.innerHTML = `<span class="swatch" style="background:${PIE_COLORS[si % PIE_COLORS.length]};"></span><span>${s.name}</span>`;
+      row.innerHTML = `<span class="swatch" style="background:${colors[si]};"></span><span>${sr.name}</span>`;
       stackbarLegend.appendChild(row);
     });
   }
@@ -1221,7 +1228,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Breakdown row: GA4/PPC/SEO's own breakdown, Social "all" platform mix,
     // or a specific Social platform's content-type split.
     if (isFullType) {
-      renderBreakdownBars(weightedBreakdown(data.breakdown, currentType, currentMetric));
+      renderBreakdownBars(data.breakdown);
     } else if (currentPlatform === "all") {
       renderBreakdownBars(data.breakdown);
     } else {
@@ -1232,7 +1239,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const typeData = DATA_BY_TYPE[currentType];
       renderPie(typeData.demographics);
       renderTopPages(data.topPages);
-      renderStackbar(weightedChannelMonths(typeData.channelMonths, currentType, currentMetric));
+      renderStackbar(typeData.channelMonths);
     }
 
     hideTooltip();

@@ -2101,12 +2101,17 @@ body { perspective: none; }
 #demo-stackbar-grid line { stroke: url(#sbEdgeFade); stroke-width: 1; stroke-dasharray: 4 4; }
 .demo-sb-stage .sb-bar {
   transform-box: fill-box; transform-origin: 50% 100%;
-  animation: sbGrow 0.95s cubic-bezier(0.85, 0, 0.15, 1) both;
-  transition: opacity 0.2s var(--ease);
+  animation: sbGrow 0.95s cubic-bezier(0.85, 0, 0.15, 1) backwards;
+  transition: opacity 0.25s var(--ease), transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), filter 0.35s var(--ease);
 }
 @keyframes sbGrow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
 .demo-sb-stage.is-hover .sb-bar { opacity: 0.3; }
-.demo-sb-stage.is-hover .sb-bar.on { opacity: 1; }
+.demo-sb-stage.is-hover .sb-bar.on {
+  opacity: 1;
+  transform: scale(1.07, 1.035);
+  filter: drop-shadow(0 10px 22px rgba(130, 167, 255, 0.45)) brightness(1.12);
+}
+.demo-sb-stage.is-hover .sb-bar:not(.on) { transform: scale(0.97, 1); }
 .demo-stackbar-wrap .sb-bar path { transition: none; }
 .demo-sb-axis { position: absolute; left: 0; right: 0; bottom: 0; height: 10.77%; pointer-events: none; }
 .demo-sb-axis span {
