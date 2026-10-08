@@ -528,8 +528,26 @@ hr.rule {
   transform: rotate(18deg);
   transform-origin: 52% 62%;
 }
+/* Phones / tablets: no cube. Instead the AcidSquares corridor (js/hero-acid.js),
+   a slow WebGL drift through a lattice of softly lit blocks in Veld blue,
+   fading in once its first frame is drawn. */
+.hero-acid { display: none; }
 @media (max-width: 1100px) {
   .hero-cube { display: none; }
+  .hero-cube-glow { background: #000; }
+  .hero-cube-glow::before,
+  .hero-cube-glow::after { display: none; }
+  .hero-acid {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 1.4s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  .hero-acid.is-ready { opacity: 1; }
 }
 
 .hero-stack .container {
