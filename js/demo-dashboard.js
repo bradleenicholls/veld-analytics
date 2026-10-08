@@ -780,6 +780,44 @@ document.addEventListener("DOMContentLoaded", () => {
     PAD_BOTTOM = 34,
     CHART_H = VB_H - PAD_TOP - PAD_BOTTOM;
 
+  // ---------- Make the sample trends feel like real data ----------
+  // Several PPC / SEO / Social series were dead-straight climbs. Add a
+  // deterministic bounce (ends untouched) to any series that barely wobbles.
+  function seededHash(str) {
+    let h = 2166136261;
+    for (let k = 0; k < str.length; k++) { h ^= str.charCodeAt(k); h = Math.imul(h, 16777619); }
+    return (h >>> 0) / 4294967295;
+  }
+  function bounce(arr, seed) {
+    const n = arr.length;
+    if (n < 5) return arr;
+    let flips = 0;
+    for (let k = 2; k < n; k++) if ((arr[k] - arr[k - 1]) * (arr[k - 1] - arr[k - 2]) < 0) flips++;
+    if (flips >= Math.floor(n / 3)) return arr; // already bouncy
+    const lo = Math.min(...arr), hi = Math.max(...arr);
+    const mean = arr.reduce((a, b) => a + b, 0) / n;
+    const amp = Math.max((hi - lo) * 0.3, Math.abs(mean) * 0.03);
+    const p1 = seededHash(seed + "a") * 6.28, p2 = seededHash(seed + "b") * 6.28, p3 = seededHash(seed + "c") * 6.28;
+    const big = Math.max(...arr.map(Math.abs)) >= 50;
+    return arr.map((v, k) => {
+      if (k === 0 || k === n - 1) return v;
+      const w = Math.sin(k * 2.3 + p1) * 0.5 + Math.sin(k * 3.9 + p2) * 0.35 + Math.sin(k * 5.7 + p3) * 0.15;
+      const nv = v + amp * w;
+      return big ? Math.round(nv) : Math.round(nv * 100) / 100;
+    });
+  }
+  Object.entries(DATA_BY_TYPE).forEach(([type, td]) => {
+    Object.entries(td.ranges).forEach(([rng, rd]) => {
+      if (!rd.metrics) return;
+      Object.keys(rd.metrics).forEach((k) => { rd.metrics[k] = bounce(rd.metrics[k], `${type}|${rng}|${k}`); });
+    });
+  });
+  Object.entries(SOCIAL_PLATFORMS).forEach(([pl, pd]) => {
+    Object.entries(pd.ranges).forEach(([rng, rd]) => {
+      if (rd.trend) rd.trend = bounce(rd.trend, `social|${pl}|${rng}`);
+    });
+  });
+
   let currentType = "ga4";
   let currentRange = "7d";
   let currentPlatform = "all";
@@ -1362,15 +1400,27 @@ document.addEventListener("DOMContentLoaded", () => {
     sparkEls[i] = svgEl;
   });
 
+  // Sparklines come from the real trend data. Cards that have their own
+  // series (Users, Sessions, Clicks, Cost, ...) use it directly; the rest
+  // (rates, averages, followers...) are derived from the view's main series
+  // with their own seeded bounce, so every card differs and changes per view.
   function sparkSeries(i, stat, data) {
-    const key = stat.label.toLowerCase();
-    if (data.metrics && data.metrics[key]) return data.metrics[key].slice();
-    const n = 24;
-    const seed = i * 1.7 + (parseInt(currentRange, 10) || 7) * 0.13;
+    const key = stat.label.toLowerCase().replace(/\s+/g, "");
+    const m = data.metrics || {};
+    if (m[key]) return m[key].slice();
+    if (stat.label === "Impressions" && data.trend) return data.trend.slice();
+    const base = data.trend || m[Object.keys(m)[0]] || [1, 2, 3, 4, 5, 6, 7];
+    const seed = `${currentType}|${currentPlatform}|${currentRange}|${stat.label}|${i}`;
+    const lo = Math.min(...base), hi = Math.max(...base), rg = hi - lo || 1;
+    const p1 = seededHash(seed + "1") * 6.28, p2 = seededHash(seed + "2") * 6.28;
+    const mix = 0.25 + seededHash(seed + "3") * 0.4; // how much of the main trend shows through
+    const sign = stat.dir === "down" ? -1 : 1;
+    const n = Math.max(base.length, 10);
     return Array.from({ length: n }, (_, k) => {
       const t = k / (n - 1);
-      const trend = stat.dir === "down" ? 1 - 0.4 * t : 0.35 + 0.65 * t;
-      return trend + 0.12 * Math.sin(k * 0.9 + seed) + 0.07 * Math.sin(k * 2.3 + seed * 2);
+      const bi = t * (base.length - 1), b0 = Math.floor(bi), b1 = Math.min(b0 + 1, base.length - 1);
+      const bv = ((base[b0] + (base[b1] - base[b0]) * (bi - b0)) - lo) / rg;
+      return sign * mix * bv + (1 - mix) * 0.5 * (Math.sin(t * 6.28 * (1.2 + seededHash(seed + "4") * 1.5) + p1) * 0.65 + Math.sin(t * 6.28 * (3 + seededHash(seed + "5") * 2.5) + p2) * 0.35) + sign * 0.3 * t;
     });
   }
 
