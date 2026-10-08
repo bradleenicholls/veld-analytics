@@ -209,5 +209,150 @@
     },
   };
 
+  // ---------- Country-border choropleth (loaded from the world-atlas CDN) ----------
+  const GEO_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
+  const ALIAS = { "United States": "United States of America", "DR Congo": "Dem. Rep. Congo" };
+  const NORDICS = ["Sweden", "Norway", "Finland", "Denmark", "Iceland"];
+  const GEO_LAT_MIN = -56, GEO_LAT_MAX = 84, GEO_W = 1000;
+  const GEO_H = (GEO_W * (mercY(GEO_LAT_MAX) - mercY(GEO_LAT_MIN))) / (2 * Math.PI);
+
+  function project(lon, lat) {
+    const la = Math.max(GEO_LAT_MIN, Math.min(GEO_LAT_MAX, lat));
+    return [((lon + 180) / 360) * GEO_W, ((mercY(GEO_LAT_MAX) - mercY(la)) / (mercY(GEO_LAT_MAX) - mercY(GEO_LAT_MIN))) * GEO_H];
+  }
+
+  function decodeTopo(topo) {
+    const { scale: [sx, sy], translate: [tx, ty] } = topo.transform;
+    const arcs = topo.arcs.map((a) => { let x = 0, y = 0; return a.map(([dx, dy]) => { x += dx; y += dy; return [x * sx + tx, y * sy + ty]; }); });
+    const ring = (idx) => {
+      let pts = [];
+      idx.forEach((i) => { const a = i < 0 ? arcs[~i].slice().reverse() : arcs[i]; pts = pts.concat(pts.length ? a.slice(1) : a); });
+      return pts;
+    };
+    return topo.objects.countries.geometries
+      .filter((g) => g.properties.name !== "Antarctica")
+      .map((g) => {
+        const polys = g.type === "Polygon" ? [g.arcs] : g.arcs;
+        let d = "";
+        polys.forEach((poly) => poly.forEach((r) => {
+          let pts = ring(r).map(([lo, la]) => project(lo, la));
+          const xs = pts.map((q) => q[0]);
+          const shifts = [0];
+          if (Math.max(...xs) - Math.min(...xs) > 500) {
+            // ring crosses the antimeridian: unwrap it and draw a second copy
+            pts = pts.map((q) => [q[0] < GEO_W / 2 ? q[0] + GEO_W : q[0], q[1]]);
+            shifts.push(-GEO_W);
+          }
+          shifts.forEach((sh) => {
+            d += "M" + pts.map((q) => (q[0] + sh).toFixed(1) + "," + q[1].toFixed(1)).join("L") + "Z";
+          });
+        }));
+        return { name: g.properties.name, d };
+      });
+  }
+
+  Object.assign(VeldMap, {
+    geo: null,
+    loadGeo() {
+      fetch(GEO_URL)
+        .then((r) => r.json())
+        .then((topo) => {
+          this.geo = decodeTopo(topo);
+          this.buildSvg();
+          if (this.lastOpts) this.update(this.lastOpts);
+        })
+        .catch(() => { /* keep the dot-matrix fallback */ });
+    },
+    buildSvg() {
+      const NS = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(NS, "svg");
+      svg.setAttribute("viewBox", "0 0 " + GEO_W + " " + GEO_H.toFixed(1));
+      svg.setAttribute("class", "demo-map-svg");
+      svg.setAttribute("role", "img");
+      svg.setAttribute("aria-label", "World heat map of audience locations");
+      const grat = document.createElementNS(NS, "path");
+      let gd = "";
+      for (let lon = -180; lon <= 180; lon += 30) { const a = project(lon, GEO_LAT_MAX), b = project(lon, GEO_LAT_MIN); gd += "M" + a[0] + "," + a[1] + "L" + b[0] + "," + b[1]; }
+      for (let lat = -50; lat <= 80; lat += 30) { const a = project(-180, lat), b = project(180, lat); gd += "M" + a[0] + "," + a[1] + "L" + b[0] + "," + b[1]; }
+      grat.setAttribute("d", gd);
+      grat.setAttribute("class", "demo-map-grat");
+      svg.appendChild(grat);
+      this.geoPaths = this.geo.map((c, i) => {
+        const p = document.createElementNS(NS, "path");
+        p.setAttribute("d", c.d);
+        p.setAttribute("class", "demo-map-country");
+        p.dataset.i = i;
+        svg.appendChild(p);
+        return p;
+      });
+      svg.addEventListener("mousemove", (e) => this.onGeoMove(e));
+      svg.addEventListener("mouseleave", () => this.geoHover(-1));
+      this.svg = svg;
+      this.canvas.style.display = "none";
+      this.canvas.parentElement.insertBefore(svg, this.canvas);
+    },
+    nameWeights(pf, range) {
+      const cols = pf === "all" ? [4, 5, 6] : [PLATFORM_IDX[pf] || 4];
+      const w = {};
+      C.forEach((row) => {
+        const base = cols.reduce((a, ci) => a + row[ci], 0);
+        const wob = 0.86 + 0.28 * hash(pf + "|" + range + "|" + row[0]);
+        const names = row[0] === "Nordics" ? NORDICS : [ALIAS[row[0]] || row[0]];
+        names.forEach((n) => { w[n] = (base * wob) / (names.length > 1 ? 2.4 : 1); });
+      });
+      this.geo.forEach((c) => {
+        if (w[c.name] === undefined) w[c.name] = (0.15 + 0.5 * hash("bg|" + pf + "|" + c.name)) * (cols.length > 1 ? 1.6 : 1);
+      });
+      return w;
+    },
+    paintGeo(opts) {
+      const w = this.nameWeights(opts.platform || "all", opts.range);
+      this.nameW = w;
+      this.geoTotal = this.geo.reduce((a, c) => a + w[c.name], 0);
+      const max = Math.max(...this.geo.map((c) => w[c.name]));
+      this.geoPaths.forEach((p, i) => {
+        const v = Math.pow(w[this.geo[i].name] / max, 0.5);
+        p.style.fill = this.color(v, 0.28 + 0.72 * v);
+      });
+      const order = this.geo.map((c, i) => i).sort((a, b) => w[this.geo[b].name] - w[this.geo[a].name]).slice(0, 6);
+      const mx = w[this.geo[order[0]].name];
+      this.top.innerHTML = order
+        .map((i) => {
+          const n = this.geo[i].name, share = (w[n] / this.geoTotal) * 100;
+          return '<div class="demo-map-row"><span class="n">' + n + '</span><span class="p">' + share.toFixed(1) + '%</span><span class="b"><i style="width:' + ((w[n] / mx) * 100).toFixed(0) + '%"></i></span></div>';
+        })
+        .join("");
+    },
+    geoHover(i) {
+      if (this.geoIdx === i) return;
+      this.geoIdx = i;
+      this.svg.classList.toggle("is-hover", i >= 0);
+      this.geoPaths.forEach((p, k) => p.classList.toggle("on", k === i));
+      if (i < 0) this.tip.classList.remove("visible");
+    },
+    onGeoMove(e) {
+      const t = e.target;
+      const i = t && t.dataset && t.dataset.i !== undefined ? parseInt(t.dataset.i, 10) : -1;
+      this.geoHover(i);
+      if (i < 0) return;
+      const n = this.geo[i].name, share = (this.nameW[n] / this.geoTotal) * 100;
+      const rect = this.svg.parentElement.getBoundingClientRect();
+      this.tip.innerHTML = '<div class="row"><span class="k">' + n + '</span></div><div class="row"><span class="k">Viewers</span><span class="val">' + Math.round((this.reach * share) / 100).toLocaleString("en-GB") + '</span></div><div class="row"><span class="k">Share</span><span class="val">' + share.toFixed(1) + '%</span></div>';
+      this.tip.style.left = e.clientX - rect.left + "px";
+      this.tip.style.top = e.clientY - rect.top + "px";
+      this.tip.classList.add("visible");
+    },
+  });
+
+  // Route update() through the choropleth once the borders have loaded.
+  const baseUpdate = VeldMap.update.bind(VeldMap);
+  VeldMap.update = function (opts) {
+    this.lastOpts = opts;
+    if (this.geo && this.svg) { this.reach = opts.reach || 100000; this.paintGeo(opts); return; }
+    baseUpdate(opts);
+  };
+  const baseInit = VeldMap.init.bind(VeldMap);
+  VeldMap.init = function (root) { baseInit(root); this.loadGeo(); };
+
   window.VeldMap = VeldMap;
 })();

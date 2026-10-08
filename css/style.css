@@ -2156,3 +2156,10 @@ body { perspective: none; }
 .demo-map-legend { display: flex; align-items: center; gap: 8px; margin-top: 18px; font-family: var(--font-mono); font-size: 0.66rem; color: var(--text-faint); }
 .demo-map-legend i { flex: 1; height: 6px; border-radius: 3px; background: linear-gradient(90deg, #222c54, #2457FF, #82A7FF, #DFF7FF); }
 @media (max-width: 900px) { .demo-map-body { grid-template-columns: 1fr; padding: 6px 18px 24px; } }
+
+/* choropleth map */
+.demo-map-svg { display: block; width: 100%; height: auto; cursor: default; }
+.demo-map-grat { fill: none; stroke: rgba(255, 255, 255, 0.05); stroke-width: 0.6; stroke-dasharray: 3 4; }
+.demo-map-country { stroke: #000; stroke-width: 0.5; transition: fill 0.7s var(--ease), opacity 0.2s var(--ease); }
+.demo-map-svg.is-hover .demo-map-country { opacity: 0.4; }
+.demo-map-svg.is-hover .demo-map-country.on { opacity: 1; stroke: #DFF7FF; stroke-width: 0.9; }
