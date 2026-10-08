@@ -2163,3 +2163,11 @@ body { perspective: none; }
 .demo-map-country { stroke: #000; stroke-width: 0.5; transition: fill 0.7s var(--ease), opacity 0.2s var(--ease); }
 .demo-map-svg.is-hover .demo-map-country { opacity: 0.4; }
 .demo-map-svg.is-hover .demo-map-country.on { opacity: 1; stroke: #DFF7FF; stroke-width: 0.9; }
+
+/* KPI sparklines on narrow screens: full-width strip under the number instead of a squashed corner chart */
+@media (max-width: 900px) {
+  .demo-stat .spark {
+    position: relative; right: auto; top: auto; transform: none;
+    display: block; width: 100%; max-width: none; height: 30px; margin-top: 12px;
+  }
+}
