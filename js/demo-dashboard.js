@@ -1164,7 +1164,68 @@ document.addEventListener("DOMContentLoaded", () => {
     return currentFull[i] || currentLabels[i] || "";
   }
 
+  // ---- Hover: spring-driven crosshair, dots, pill, tooltip (all share one animated x) ----
+  let hoverActive = false;
+  let hoverIdx = 0;
+  let tx = 0, cx = 0, lastT = 0, raf = 0;
+
+  function yOnPath(path, x) {
+    const L = path.getTotalLength();
+    let lo = 0, hi = L;
+    for (let i = 0; i < 18; i++) {
+      const mid = (lo + hi) / 2;
+      if (path.getPointAtLength(mid).x < x) lo = mid; else hi = mid;
+    }
+    return path.getPointAtLength((lo + hi) / 2).y;
+  }
+
+  function frame(t) {
+    raf = 0;
+    if (!hoverActive) return;
+    const dt = Math.min(0.05, (t - lastT) / 1000 || 0.016);
+    lastT = t;
+    cx += (tx - cx) * (1 - Math.exp(-dt * 20));
+    if (Math.abs(tx - cx) < 0.05) cx = tx;
+    paintHover();
+    if (cx !== tx) raf = requestAnimationFrame(frame);
+  }
+
+  function paintHover() {
+    const yCur = yOnPath(linePath, cx);
+    const yPrev = currentPrev.length ? yOnPath(prevLine, cx) : null;
+    hoverLine.setAttribute("x1", cx);
+    hoverLine.setAttribute("x2", cx);
+    hoverDot.setAttribute("cx", cx);
+    hoverDot.setAttribute("cy", yCur);
+    if (hoverDotPrev && yPrev !== null) {
+      hoverDotPrev.setAttribute("cx", cx);
+      hoverDotPrev.setAttribute("cy", yPrev);
+    }
+    if (hiRect) hiRect.setAttribute("x", cx - 150);
+
+    const svgRect = svg.getBoundingClientRect();
+    const sw = svgRect.width;
+    const px = (cx / VB_W) * sw;
+    if (pillEl) {
+      const half = pillEl.offsetWidth / 2;
+      const pcl = Math.min(Math.max(px, half), sw - half);
+      pillEl.style.left = pcl + "px";
+      tickEls.forEach((el) => {
+        const d = Math.abs((parseFloat(el.dataset.x) / VB_W) * sw - pcl);
+        el.style.opacity = Math.max(0, Math.min(1, (d - 20) / 50));
+      });
+    }
+    if (chartWrap) {
+      const wrapRect = chartWrap.getBoundingClientRect();
+      tooltip.style.left = svgRect.left - wrapRect.left + px + "px";
+      tooltip.style.top = svgRect.top - wrapRect.top + (yCur / VB_H) * svgRect.height + "px";
+    }
+  }
+
   function hideTooltip() {
+    hoverActive = false;
+    if (raf) cancelAnimationFrame(raf);
+    raf = 0;
     if (chartWrap) chartWrap.classList.remove("is-hover");
     if (pillEl) pillEl.classList.remove("visible");
     if (hoverDotPrev) hoverDotPrev.style.opacity = 0;
@@ -1188,67 +1249,37 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!currentPoints.length) return;
     const { x } = svgSpaceFromClient(clientX, clientY);
 
-    let nearest = currentPoints[0];
-    let nearestDist = Infinity;
-    let nearestIdx = 0;
+    let nearestIdx = 0, nearestDist = Infinity;
     currentPoints.forEach((p, i) => {
       const d = Math.abs(p.x - x);
-      if (d < nearestDist) {
-        nearestDist = d;
-        nearest = p;
-        nearestIdx = i;
-      }
+      if (d < nearestDist) { nearestDist = d; nearestIdx = i; }
     });
-
-    if (hoverLine) {
-      hoverLine.setAttribute("x1", nearest.x);
-      hoverLine.setAttribute("x2", nearest.x);
-      hoverLine.style.opacity = 1;
-    }
-    if (hoverDot) {
-      hoverDot.setAttribute("cx", nearest.x);
-      hoverDot.setAttribute("cy", nearest.y);
-      hoverDot.style.opacity = 1;
-    }
-
-    const { unit } = activeRangeData();
+    const nearest = currentPoints[nearestIdx];
     const prevPt = currentPrev[nearestIdx];
-    if (chartWrap) chartWrap.classList.add("is-hover");
-    if (hoverDotPrev && prevPt) {
-      hoverDotPrev.setAttribute("cx", prevPt.x);
-      hoverDotPrev.setAttribute("cy", prevPt.y);
-      hoverDotPrev.style.opacity = 1;
-    }
-    if (hiRect) hiRect.setAttribute("x", nearest.x - 150);
+    const first = !hoverActive;
+    hoverActive = true;
+    tx = nearest.x;
+    if (first) cx = tx;
 
-    tooltip.innerHTML =
-      `<div class="row"><i></i><span class="k">This period</span><span class="val">${formatTooltipValue(nearest.v, unit)}</span></div>` +
-      (prevPt ? `<div class="row prev"><i></i><span class="k">Previous</span><span class="val">${formatTooltipValue(prevPt.v, unit)}</span></div>` : "");
-    tooltip.classList.add("visible");
-
-    if (pillEl && stageEl) {
-      const sw = stageEl.getBoundingClientRect().width;
-      pillEl.innerHTML = `<b>${labelAt(nearestIdx)}</b>`;
-      const half = pillEl.getBoundingClientRect().width / 2;
-      const px = Math.min(Math.max((nearest.x / VB_W) * sw, half), sw - half);
-      pillEl.style.left = px + "px";
-      pillEl.classList.add("visible");
-      tickEls.forEach((t) => {
-        const d = Math.abs((parseFloat(t.dataset.x) / VB_W) * sw - px);
-        t.style.opacity = Math.max(0, Math.min(1, (d - 20) / 50));
-      });
+    if (nearestIdx !== hoverIdx || first) {
+      hoverIdx = nearestIdx;
+      const { unit } = activeRangeData();
+      tooltip.innerHTML =
+        `<div class="row"><i></i><span class="k">This period</span><span class="val">${formatTooltipValue(nearest.v, unit)}</span></div>` +
+        (prevPt ? `<div class="row prev"><i></i><span class="k">Previous</span><span class="val">${formatTooltipValue(prevPt.v, unit)}</span></div>` : "");
+      if (pillEl) pillEl.innerHTML = `<b>${labelAt(nearestIdx)}</b>`;
     }
 
-    if (chartWrap) {
-      const wrapRect = chartWrap.getBoundingClientRect();
-      const svgRect = svg.getBoundingClientRect();
-      const scaleX = svgRect.width / VB_W;
-      const scaleY = svgRect.height / VB_H;
-      const px = svgRect.left - wrapRect.left + nearest.x * scaleX;
-      const py = svgRect.top - wrapRect.top + nearest.y * scaleY;
-      tooltip.style.left = px + "px";
-      tooltip.style.top = py + "px";
+    if (first) {
+      if (chartWrap) chartWrap.classList.add("is-hover");
+      hoverLine.style.opacity = 1;
+      hoverDot.style.opacity = 1;
+      if (hoverDotPrev && prevPt) hoverDotPrev.style.opacity = 1;
+      tooltip.classList.add("visible");
+      if (pillEl) pillEl.classList.add("visible");
+      paintHover();
     }
+    if (!raf) { lastT = performance.now(); raf = requestAnimationFrame(frame); }
   }
 
   overlay.addEventListener("mousemove", (e) => onMove(e.clientX, e.clientY));
