@@ -528,26 +528,42 @@ hr.rule {
   transform: rotate(18deg);
   transform-origin: 52% 62%;
 }
-/* Phones / tablets: no cube. Instead the AcidSquares corridor (js/hero-acid.js),
-   a slow WebGL drift through a lattice of softly lit blocks in Veld blue,
-   fading in once its first frame is drawn. */
-.hero-acid { display: none; }
+/* Phones / tablets: no cube and no background effect, so the hero blends
+   straight into the black page below. The accent phrase ("We solve it.")
+   gets a looping light-shine sweep: a pale band slides across it, then
+   rests off the right edge before looping (same technique and timing as
+   the "trust and use" highlight on bradleenicholls.com, in Veld colours). */
 @media (max-width: 1100px) {
   .hero-cube { display: none; }
   .hero-cube-glow { background: #000; }
   .hero-cube-glow::before,
   .hero-cube-glow::after { display: none; }
-  .hero-acid {
-    display: block;
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    overflow: hidden;
-    opacity: 0;
-    transition: opacity 1.4s cubic-bezier(0.32, 0.72, 0, 1);
+  .hero-stack-copy h1 .hero-accent {
+    position: relative;
+    display: inline-block;
+    vertical-align: baseline;
+    clip-path: inset(0);
+    color: #82A7FF;
+    animation: none;
+    text-shadow: none !important;
   }
-  .hero-acid.is-ready { opacity: 1; }
+  .hero-stack-copy h1 .hero-accent::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -60%;
+    width: 45%;
+    background: linear-gradient(100deg, transparent, rgba(223, 247, 255, 0.6), transparent);
+    animation: hl-shine 3s ease-in-out infinite;
+  }
+}
+@keyframes hl-shine {
+  0% { left: -60%; }
+  55%, 100% { left: 130%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-stack-copy h1 .hero-accent::after { animation: none; opacity: 0; }
 }
 
 .hero-stack .container {
