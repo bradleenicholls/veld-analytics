@@ -787,6 +787,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentPoints = [];
   let currentPrev = [];
   let currentLabels = [];
+  let currentFull = [];
 
   // Resolve the active chart trend + labels regardless of type/platform nesting.
   function activeRangeData() {
@@ -1009,7 +1010,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const built = buildPoints(trend, makePrev(trend));
     currentPoints = built.cur;
     currentPrev = built.prev;
-    currentLabels = data.labels || [];
+    {
+      const days = parseInt(currentRange, 10) || trend.length;
+      const n = trend.length;
+      const today = new Date();
+      today.setHours(12, 0, 0, 0);
+      const dates = trend.map((_, i) => {
+        const back = n === 1 ? 0 : Math.round((days - 1) * (1 - i / (n - 1)));
+        const d = new Date(today);
+        d.setDate(d.getDate() - back);
+        return d;
+      });
+      currentLabels = dates.map((d) => d.toLocaleDateString("en-GB", { day: "numeric", month: "short" }));
+      currentFull = dates.map((d) =>
+        d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })
+      );
+    }
 
     typeToggle.querySelectorAll("button").forEach((btn) => {
       btn.classList.toggle("active", btn.dataset.demoType === currentType);
@@ -1145,8 +1161,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function labelAt(i) {
-    for (let k = i; k >= 0; k--) if (currentLabels[k]) return currentLabels[k];
-    return currentLabels.find(Boolean) || "";
+    return currentFull[i] || currentLabels[i] || "";
   }
 
   function hideTooltip() {
