@@ -287,6 +287,20 @@
           <div class="demo-stackbar-legend" id="demo-stackbar-legend"></div>
         </div>
       </div>
+      <div id="demo-map-section" style="display:none;">
+        <div class="demo-breakdown-label">Where your audience is viewing from</div>
+        <div class="demo-map-body">
+          <div class="demo-map-canvaswrap">
+            <canvas id="demo-map-canvas" aria-label="World heat map of audience locations" role="img"></canvas>
+            <div class="demo-tooltip demo-map-tip" id="demo-map-tip"></div>
+          </div>
+          <div class="demo-map-side">
+            <div class="demo-map-sidelabel">Top locations</div>
+            <div id="demo-map-top"></div>
+            <div class="demo-map-legend"><span>Low</span><i></i><span>High</span></div>
+          </div>
+        </div>
+      </div>
     </div>
     <p class="dashboard-showcase-foot">Built from GA4, Google Ads, SEO and social. See the full breakdown of what each report covers on <a href="/services/" class="card-cta">Services <span class="btn-arrow">→</span></a></p>
   </div>
@@ -379,6 +393,7 @@
 </footer>
 
 <script src="/js/main.js"></script>
+<script src="/js/social-map.js"></script>
 <script src="/js/demo-dashboard.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/js/hero-cube.js"></script>

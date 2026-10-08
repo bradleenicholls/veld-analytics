@@ -1290,6 +1290,20 @@ document.addEventListener("DOMContentLoaded", () => {
       renderStackbar(typeData.channelMonths);
     }
 
+    // Social only: audience heat map, different for each platform.
+    const mapSection = root.querySelector("#demo-map-section");
+    if (mapSection) {
+      mapSection.style.display = currentType === "social" ? "block" : "none";
+      if (currentType === "social" && window.VeldMap) {
+        if (!window.VeldMap.ready) window.VeldMap.init(mapSection);
+        const reachStat = data.stats.find((st) => st.label === "Reach") || data.stats[0];
+        const rp = parseStat(reachStat.value);
+        let reach = rp ? rp.num : 100000;
+        if (rp && /M/i.test(rp.suf)) reach *= 1e6; else if (rp && /k/i.test(rp.suf)) reach *= 1e3;
+        window.VeldMap.update({ platform: currentPlatform, reach, range: currentRange });
+      }
+    }
+
     hideTooltip();
   }
 
