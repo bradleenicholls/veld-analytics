@@ -785,6 +785,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentPlatform = "all";
   let currentMetric = "sessions";
   let currentPoints = [];
+  let lastLowerKey = "";
   let currentPrev = [];
   let currentLabels = [];
   let currentFull = [];
@@ -1225,9 +1226,17 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
+    // The metric buttons only drive the line chart, so skip re-rendering
+    // everything below it unless the type / range / platform changed.
+    const lowerKey = `${currentType}|${currentRange}|${currentPlatform}`;
+    const lowerChanged = lowerKey !== lastLowerKey;
+    lastLowerKey = lowerKey;
+
     // Breakdown row: GA4/PPC/SEO's own breakdown, Social "all" platform mix,
     // or a specific Social platform's content-type split.
-    if (isFullType) {
+    if (!lowerChanged) {
+      // metric-only change: leave breakdown, pie, table and bar chart alone
+    } else if (isFullType) {
       renderBreakdownBars(data.breakdown);
     } else if (currentPlatform === "all") {
       renderBreakdownBars(data.breakdown);
@@ -1235,7 +1244,7 @@ document.addEventListener("DOMContentLoaded", () => {
       renderBreakdownBars(SOCIAL_PLATFORMS[currentPlatform].contentBreakdown);
     }
 
-    if (isFullType) {
+    if (lowerChanged && isFullType) {
       const typeData = DATA_BY_TYPE[currentType];
       renderPie(typeData.demographics);
       renderTopPages(data.topPages);
