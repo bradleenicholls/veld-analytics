@@ -762,6 +762,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const hoverDot = root.querySelector("#demo-hover-dot");
   const overlay = root.querySelector("#demo-chart-overlay");
   const tooltip = root.querySelector("#demo-tooltip");
+  const prevArea = root.querySelector("#demo-prev-area");
+  const prevLine = root.querySelector("#demo-prev-line");
+  const hiLine = root.querySelector("#demo-hi-line");
+  const hiRect = root.querySelector("#demo-hi-rect");
+  const hoverDotPrev = root.querySelector("#demo-hover-dot-prev");
+  const xAxisEl = root.querySelector("#demo-xaxis");
+  const pillEl = root.querySelector("#demo-pill");
+  const stageEl = root.querySelector("#demo-chart-stage");
   const chartWrap = root.querySelector(".demo-chart-wrap");
 
   if (!typeToggle || !rangeToggle || !svg || !areaPath || !linePath || !overlay || !tooltip) return;
@@ -777,6 +785,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentPlatform = "all";
   let currentMetric = "sessions";
   let currentPoints = [];
+  let currentPrev = [];
+  let currentLabels = [];
 
   // Resolve the active chart trend + labels regardless of type/platform nesting.
   function activeRangeData() {
@@ -804,19 +814,27 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
-  function buildPoints(trend) {
-    const min = Math.min(...trend);
-    const max = Math.max(...trend);
+  // Deterministic "previous period" series derived from the current one.
+  function makePrev(trend) {
+    return trend.map((v, i) => v * (0.8 + 0.09 * Math.sin(i * 1.35 + 0.8) - 0.012 * i / Math.max(1, trend.length)));
+  }
+
+  function buildPoints(trend, prev) {
+    const all = trend.concat(prev || []);
+    const min = Math.min(...all);
+    const max = Math.max(...all);
     const range = max - min || 1;
     const padVal = range * 0.15;
     const lo = min - padVal;
     const hi = max + padVal;
     const n = trend.length;
-    return trend.map((v, i) => {
-      const x = n === 1 ? 0 : (i / (n - 1)) * VB_W;
-      const y = PAD_TOP + (1 - (v - lo) / (hi - lo)) * CHART_H;
-      return { x, y, v };
-    });
+    const map = (arr) =>
+      arr.map((v, i) => {
+        const x = n === 1 ? 0 : (i / (n - 1)) * VB_W;
+        const y = PAD_TOP + (1 - (v - lo) / (hi - lo)) * CHART_H;
+        return { x, y, v };
+      });
+    return { cur: map(trend), prev: prev ? map(prev) : [] };
   }
 
   // Monotone cubic (Fritsch-Carlson), same family as d3 curveMonotoneX.
@@ -988,7 +1006,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const isFullType = currentType !== "social";
     const { data, trend, chartLabel: chartLbl, breakdownLabel: breakdownLbl, unit } = activeRangeData();
     if (!data) return;
-    currentPoints = buildPoints(trend);
+    const built = buildPoints(trend, makePrev(trend));
+    currentPoints = built.cur;
+    currentPrev = built.prev;
+    currentLabels = data.labels || [];
 
     typeToggle.querySelectorAll("button").forEach((btn) => {
       btn.classList.toggle("active", btn.dataset.demoType === currentType);
@@ -1054,6 +1075,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const first = currentPoints[0];
     const floorY = PAD_TOP + CHART_H;
     areaPath.setAttribute("d", `${smoothed} L${last.x},${floorY} L${first.x},${floorY} Z`);
+    if (hiLine) hiLine.setAttribute("d", smoothed);
+    if (prevLine && currentPrev.length) {
+      const ps = smoothPath(currentPrev);
+      prevLine.setAttribute("d", ps);
+      const pl = currentPrev[currentPrev.length - 1], pf = currentPrev[0];
+      prevArea.setAttribute("d", `${ps} L${pl.x},${floorY} L${pf.x},${floorY} Z`);
+    }
+    renderXAxis();
 
     // Replay the left-to-right clip reveal.
     const reveal = root.querySelector("#demo-chart-reveal");
@@ -1095,7 +1124,36 @@ document.addEventListener("DOMContentLoaded", () => {
     hideTooltip();
   }
 
+  let tickEls = [];
+  function renderXAxis() {
+    if (!xAxisEl) return;
+    const idx = [];
+    currentLabels.forEach((l, i) => { if (l) idx.push(i); });
+    const want = Math.min(idx.length, 6);
+    const picks = [];
+    for (let k = 0; k < want; k++) picks.push(idx[Math.round((k * (idx.length - 1)) / Math.max(1, want - 1))]);
+    xAxisEl.innerHTML = "";
+    tickEls = [];
+    [...new Set(picks)].forEach((i) => {
+      const sp = document.createElement("span");
+      sp.textContent = currentLabels[i];
+      sp.style.left = (currentPoints[i].x / VB_W) * 100 + "%";
+      sp.dataset.x = currentPoints[i].x;
+      xAxisEl.appendChild(sp);
+      tickEls.push(sp);
+    });
+  }
+
+  function labelAt(i) {
+    for (let k = i; k >= 0; k--) if (currentLabels[k]) return currentLabels[k];
+    return currentLabels.find(Boolean) || "";
+  }
+
   function hideTooltip() {
+    if (chartWrap) chartWrap.classList.remove("is-hover");
+    if (pillEl) pillEl.classList.remove("visible");
+    if (hoverDotPrev) hoverDotPrev.style.opacity = 0;
+    tickEls.forEach((t) => (t.style.opacity = 1));
     tooltip.classList.remove("visible");
     if (hoverLine) hoverLine.style.opacity = 0;
     if (hoverDot) hoverDot.style.opacity = 0;
@@ -1138,11 +1196,33 @@ document.addEventListener("DOMContentLoaded", () => {
       hoverDot.style.opacity = 1;
     }
 
-    const { data, unit } = activeRangeData();
-    const label = (data.labels && data.labels[nearestIdx]) || "";
-    const valueText = formatTooltipValue(nearest.v, unit);
-    tooltip.innerHTML = `${label ? label + " &middot; " : ""}<span class="val">${valueText}</span>`;
+    const { unit } = activeRangeData();
+    const prevPt = currentPrev[nearestIdx];
+    if (chartWrap) chartWrap.classList.add("is-hover");
+    if (hoverDotPrev && prevPt) {
+      hoverDotPrev.setAttribute("cx", prevPt.x);
+      hoverDotPrev.setAttribute("cy", prevPt.y);
+      hoverDotPrev.style.opacity = 1;
+    }
+    if (hiRect) hiRect.setAttribute("x", nearest.x - 150);
+
+    tooltip.innerHTML =
+      `<div class="row"><i></i><span class="k">This period</span><span class="val">${formatTooltipValue(nearest.v, unit)}</span></div>` +
+      (prevPt ? `<div class="row prev"><i></i><span class="k">Previous</span><span class="val">${formatTooltipValue(prevPt.v, unit)}</span></div>` : "");
     tooltip.classList.add("visible");
+
+    if (pillEl && stageEl) {
+      const sw = stageEl.getBoundingClientRect().width;
+      pillEl.innerHTML = `<b>${labelAt(nearestIdx)}</b>`;
+      const half = pillEl.getBoundingClientRect().width / 2;
+      const px = Math.min(Math.max((nearest.x / VB_W) * sw, half), sw - half);
+      pillEl.style.left = px + "px";
+      pillEl.classList.add("visible");
+      tickEls.forEach((t) => {
+        const d = Math.abs((parseFloat(t.dataset.x) / VB_W) * sw - px);
+        t.style.opacity = Math.max(0, Math.min(1, (d - 20) / 50));
+      });
+    }
 
     if (chartWrap) {
       const wrapRect = chartWrap.getBoundingClientRect();
