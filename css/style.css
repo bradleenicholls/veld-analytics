@@ -289,9 +289,9 @@ p { color: var(--text-muted); }
   padding-top: 3px;
 }
 @media (max-width: 900px) {
-  .nav-logo { flex-direction: column; align-items: flex-start; gap: 7px; }
-  .nav-logo-img { height: 24px; }
-  .nav-logo-sub { padding-top: 0; font-size: 0.6rem; letter-spacing: 0.5em; margin-left: 1px; }
+  .nav-logo { gap: 10px; align-items: center; }
+  .nav-logo-img { height: 22px; }
+  .nav-logo-sub { padding-top: 2px; font-size: 0.6rem; letter-spacing: 0.3em; }
 }
 
 .nav-links {
@@ -570,7 +570,7 @@ hr.rule {
     bottom: 0;
     left: -60%;
     width: 45%;
-    background: linear-gradient(100deg, transparent, rgba(223, 247, 255, 0.6), transparent);
+    background: linear-gradient(100deg, rgba(223, 247, 255, 0), rgba(223, 247, 255, 0.55) 50%, rgba(223, 247, 255, 0));
     animation: hl-shine 3s ease-in-out infinite;
   }
 }
