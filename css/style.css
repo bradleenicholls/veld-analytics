@@ -277,6 +277,17 @@ p { color: var(--text-muted); }
 .nav-logo-text span {
   color: var(--gold);
 }
+.nav-logo { gap: 12px; }
+.nav-logo-img { height: 22px; width: auto; display: block; }
+.nav-logo-sub {
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: #82A7FF;
+  line-height: 1;
+  padding-top: 3px;
+}
 
 .nav-links {
   display: flex;

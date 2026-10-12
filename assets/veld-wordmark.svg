@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="169 390 742 200" role="img" aria-label="Veld">
+<path d="M191.0 412.0 L264.0 568.0 L337.0 412.0" fill="none" stroke="#DFF7FF" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="413.0" y="390" width="70" height="50" rx="14" fill="#82A7FF"/>
+<rect x="413.0" y="465" width="104" height="50" rx="14" fill="#82A7FF"/>
+<rect x="413.0" y="540" width="130" height="50" rx="14" fill="#DFF7FF"/>
+<path d="M599.0 412.0 L599.0 568.0 L675.0 568.0" fill="none" stroke="#DFF7FF" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M763.0 412.0 H811.0 A78.0 78.0 0 0 1 811.0 568.0 H763.0 Z" fill="none" stroke="#DFF7FF" stroke-width="44" stroke-linejoin="round"/>
+</svg>
