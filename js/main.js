@@ -227,6 +227,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // if JavaScript fails (the form's action/method work on their own too).
   const form = document.querySelector("#contact-form");
   if (form) {
+    const again = document.querySelector("#form-again");
+    if (again) again.addEventListener("click", () => {
+      const success = document.querySelector("#form-success");
+      Array.from(form.children).forEach((el) => { el.hidden = false; });
+      if (success) { success.hidden = true; success.classList.remove("is-in"); }
+      const first = form.querySelector("input[name='name']");
+      if (first) first.focus();
+    });
     const note = document.querySelector("#form-note");
     const submitBtn = form.querySelector('button[type="submit"]');
 
@@ -255,7 +263,18 @@ document.addEventListener("DOMContentLoaded", () => {
         const result = await response.json().catch(() => ({}));
         if (response.ok && result.success) {
           form.reset();
-          if (note) {
+          if (note) note.textContent = "";
+          const success = document.querySelector("#form-success");
+          if (success) {
+            Array.from(form.children).forEach((el) => { if (el !== success) el.hidden = true; });
+            success.hidden = false;
+            success.classList.add("is-in");
+            success.focus({ preventScroll: true });
+            const top = form.getBoundingClientRect().top;
+            if (top < 0 || top > window.innerHeight * 0.5) {
+              window.scrollTo({ top: window.scrollY + top - 140, behavior: "smooth" });
+            }
+          } else if (note) {
             note.textContent = "Thanks, your enquiry is on its way. We'll reply within one business day.";
             note.style.color = "var(--gold-bright)";
           }

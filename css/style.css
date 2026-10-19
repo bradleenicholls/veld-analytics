@@ -2277,3 +2277,20 @@ body { perspective: none; }
 .legal-pill { font-family: var(--font-mono); font-size: 0.78rem; color: #82A7FF; }
 .legal-consent-actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
 @media (max-width: 640px) { .legal-service { padding: 16px; } .legal-table th:nth-child(2), .legal-table td:nth-child(2) { white-space: nowrap; } }
+
+/* Contact form success state */
+.form-success { text-align: center; padding: 56px 24px; border: 1px solid rgba(130,167,255,0.28); border-radius: 16px; background: rgba(130,167,255,0.05); outline: none; }
+.form-success[hidden] { display: none; }
+.form-success.is-in { animation: success-in 0.55s cubic-bezier(.2,.8,.2,1) both; }
+.form-success h2 { font-size: clamp(1.9rem, 4vw, 2.6rem); margin: 22px 0 12px; line-height: 1.1; }
+.form-success p { color: var(--text-muted); max-width: 380px; margin: 0 auto; line-height: 1.6; }
+.form-success-icon { display: block; margin: 0 auto; width: 76px; height: 76px; }
+.form-success-icon circle { fill: none; stroke: #82A7FF; stroke-width: 3; stroke-dasharray: 190; stroke-dashoffset: 190; }
+.form-success-icon path { fill: none; stroke: #DFF7FF; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 50; stroke-dashoffset: 50; }
+.form-success.is-in .form-success-icon circle { animation: success-draw 0.7s 0.1s ease forwards; }
+.form-success.is-in .form-success-icon path { animation: success-draw 0.45s 0.6s ease forwards; }
+.form-success-again { margin-top: 28px; background: none; border: 0; padding: 4px 0; font: inherit; font-size: 0.88rem; color: #82A7FF; cursor: pointer; text-decoration: underline; text-underline-offset: 4px; }
+@keyframes success-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes success-draw { to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) { .form-success.is-in, .form-success.is-in * { animation-duration: 0.01s !important; animation-delay: 0s !important; } }
+#contact-form [hidden] { display: none !important; }
