@@ -1,13 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-57TQ3LYTXY"></script>
+<!-- Google Analytics (loads only after cookie consent) -->
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-57TQ3LYTXY');
+  gtag('consent', 'default', {analytics_storage:'denied', ad_storage:'denied', ad_user_data:'denied', ad_personalization:'denied'});
+  window.veldLoadGA = function(){
+    if (window.__gaLoaded) return; window.__gaLoaded = true;
+    gtag('consent', 'update', {analytics_storage:'granted'});
+    var s = document.createElement('script'); s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=G-57TQ3LYTXY';
+    document.head.appendChild(s);
+    gtag('js', new Date()); gtag('config', 'G-57TQ3LYTXY');
+  };
+  try { if (localStorage.getItem('veld-consent') === 'granted') window.veldLoadGA(); } catch(e) {}
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -210,6 +217,8 @@
           <h4>Connect</h4>
           <a href="https://www.linkedin.com/in/bradleenicholls" target="_blank" rel="noopener">LinkedIn</a>
           <a href="https://bradleenicholls.com/" target="_blank" rel="noopener">My Portfolio</a>
+          <a href="/privacy/">Privacy &amp; Cookies</a>
+          <a href="#" data-cookie-settings>Cookie settings</a>
         </div>
       </div>
     </div>
@@ -221,5 +230,6 @@
 </footer>
 
 <script src="/js/main.js"></script>
+<script src="/js/consent.js"></script>
 </body>
 </html>
