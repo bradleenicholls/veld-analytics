@@ -80,10 +80,12 @@
   <div class="container">
     <div class="grid grid-2" style="background:transparent;border:none;overflow:visible;border-radius:0;gap:80px;align-items:start;">
 
-      <!-- Replace YOUR_FORM_ID below with the ID Formspree gives you after signup (formspree.io) -->
-      <form id="contact-form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
-        <input type="hidden" name="_subject" value="New enquiry from the Veld Analytics website">
-        <input type="text" name="_gotcha" style="position:absolute;left:-9999px;" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <!-- Submissions are delivered by Web3Forms (web3forms.com) -->
+      <form id="contact-form" action="https://api.web3forms.com/submit" method="POST">
+        <input type="hidden" name="access_key" value="75ce740a-44bc-41d0-b778-3e3a68c7b5b6">
+        <input type="hidden" name="subject" value="New enquiry from the Veld Analytics website">
+        <input type="hidden" name="from_name" value="Veld Analytics website">
+        <input type="checkbox" name="botcheck" style="position:absolute;left:-9999px;" tabindex="-1" autocomplete="off" aria-hidden="true">
         <div class="form-grid">
           <div class="form-field">
             <label for="name">Name</label>

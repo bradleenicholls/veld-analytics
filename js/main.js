@@ -223,7 +223,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Contact form: submit to Formspree via fetch, with a plain-POST fallback
+  // Contact form: submit to Web3Forms via fetch
   // if JavaScript fails (the form's action/method work on their own too).
   const form = document.querySelector("#contact-form");
   if (form) {
@@ -232,15 +232,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     form.addEventListener("submit", async (e) => {
       // Honeypot: if this hidden field got filled in, it was a bot. Drop silently.
-      const honeypot = form.querySelector('input[name="_gotcha"]');
-      if (honeypot && honeypot.value) {
+      const honeypot = form.querySelector('input[name="botcheck"]');
+      if (honeypot && honeypot.checked) {
         e.preventDefault();
         return;
-      }
-
-      // Guard against the placeholder Formspree ID never being replaced.
-      if (form.action.includes("YOUR_FORM_ID")) {
-        return; // let it submit natively so the error is visible, not silently swallowed
       }
 
       e.preventDefault();
@@ -257,7 +252,8 @@ document.addEventListener("DOMContentLoaded", () => {
           headers: { Accept: "application/json" },
         });
 
-        if (response.ok) {
+        const result = await response.json().catch(() => ({}));
+        if (response.ok && result.success) {
           form.reset();
           if (note) {
             note.textContent = "Thanks, your enquiry is on its way. We'll reply within one business day.";
@@ -268,7 +264,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       } catch (err) {
         if (note) {
-          note.textContent = "Something went wrong sending that. Please email hello@veldanalytics.com directly.";
+          note.textContent = "Something went wrong sending that. Please email veldanalytics@gmail.com directly.";
           note.style.color = "#e08a6c";
         }
       } finally {
